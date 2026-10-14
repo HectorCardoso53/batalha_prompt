@@ -84,9 +84,10 @@
           <div class="card" style="display:flex;flex-direction:column;">
             <p class="label-upper">Seu Prompt</p>
             <form id="form-prompt" style="display:flex;flex-direction:column;gap:14px;flex:1;">
-              <textarea id="inp-prompt" class="input" rows="10" required
+              <textarea id="inp-prompt" class="input" rows="10" required maxlength="1000"
                 placeholder="Descreva a imagem com o máximo de detalhes — cores, composição, estilo, objetos, iluminação..."
                 style="resize:none;flex:1;"></textarea>
+              <p id="char-count" style="font-size:12px;color:var(--texto-sec);text-align:right;margin-top:4px;">0 / 1000</p>
               <p id="erro-prompt" style="color:#DC2626;font-size:13px;display:none;"></p>
               <button type="submit" id="btn-prompt" class="btn btn-primary" style="width:100%;">Enviar Prompt</button>
               <p id="msg-loading" style="font-size:12px;color:var(--texto-sec);text-align:center;display:none;">Gerando imagem com IA... isso pode levar até 30s.</p>
@@ -304,6 +305,14 @@
       }
     });
 
+    // ── Contador de caracteres ───────────────────────────────
+    document.getElementById("inp-prompt").addEventListener("input", function() {
+      const len = this.value.length;
+      const el  = document.getElementById("char-count");
+      el.textContent = `${len} / 1000`;
+      el.style.color = len > 900 ? "#DC2626" : len > 700 ? "#92400E" : "var(--texto-sec)";
+    });
+
     // ── Submit Prompt ────────────────────────────────────────
     document.getElementById("form-prompt").addEventListener("submit", async e => {
       e.preventDefault();
@@ -316,8 +325,8 @@
         erro.textContent = "Escreva seu prompt antes de enviar.";
         erro.style.display = "block"; return;
       }
-      if (prompt.length > 3900) {
-        erro.textContent = "Prompt muito longo. Reduza para menos de 3900 caracteres.";
+      if (prompt.length > 1000) {
+        erro.textContent = "Prompt muito longo. Máximo 1000 caracteres (limite do DALL-E 2).";
         erro.style.display = "block"; return;
       }
 
