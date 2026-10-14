@@ -1,23 +1,16 @@
-// ═══════════════════════════════════════════════════
-//  Configure aqui antes de usar
-// ═══════════════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
-export const OPENAI_KEY = localStorage.getItem("openaiKey") || "";
-
-// Desafio padrão — o admin pode sobrescrever via Painel Admin
-const _PADRAO = {
-  id:           "desafio-1",
-  title:        "Desafio #1",
-  masterImage:  "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Sunrise_over_the_sea.jpg/1280px-Sunrise_over_the_sea.jpg",
-  masterPrompt: "(secreto — só o admin vê aqui no app.js)",
-  isActive:     true,
+const firebaseConfig = {
+  apiKey:            "AIzaSyBQnxHRyj05vOhWcEsArgnYML13YMrVsKw",
+  authDomain:        "batalha-de-prompt.firebaseapp.com",
+  databaseURL:       "https://batalha-de-prompt-default-rtdb.firebaseio.com",
+  projectId:         "batalha-de-prompt",
+  storageBucket:     "batalha-de-prompt.firebasestorage.app",
+  messagingSenderId: "812431626831",
+  appId:             "1:812431626831:web:43867d85a41990ec95103a",
 };
 
-function _loadDesafio() {
-  try {
-    const saved = localStorage.getItem("desafioConfig");
-    return saved ? JSON.parse(saved) : _PADRAO;
-  } catch { return _PADRAO; }
-}
-
-export const DESAFIO = _loadDesafio();
+const firebaseApp = initializeApp(firebaseConfig);
+export const db         = getDatabase(firebaseApp);
+export const OPENAI_KEY = localStorage.getItem("openaiKey") || "";

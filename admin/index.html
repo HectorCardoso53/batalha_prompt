@@ -45,33 +45,51 @@
           </div>
         </div>
 
+        <!-- Sem desafio -->
         <div id="sem-desafio" class="card" style="display:none;text-align:center;padding:48px 24px;">
-          <p style="font-size:18px;color:var(--texto-sec);margin-bottom:16px;">Nenhum desafio ativo.</p>
+          <p style="font-size:18px;color:var(--texto-sec);margin-bottom:16px;">Nenhum desafio criado.</p>
           <a href="novo-desafio.html" class="btn btn-primary">Criar novo desafio</a>
         </div>
-        <div id="card-desafio" class="card" style="display:flex;flex-direction:column;gap:16px;">
-          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-            <div style="flex:1;min-width:200px;">
-              <h2 id="ch-title" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:4px;"></h2>
-              <p id="ch-subs" style="font-size:13px;color:var(--texto-sec);"></p>
-              <p id="ch-status" style="font-size:12px;font-weight:700;margin-top:4px;"></p>
+
+        <!-- Card desafio -->
+        <div id="card-desafio" style="display:none;display:flex;flex-direction:column;gap:20px;">
+
+          <!-- Cabeçalho do desafio -->
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+              <div style="flex:1;min-width:200px;">
+                <h2 id="ch-title" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:4px;"></h2>
+                <p id="ch-subs" style="font-size:13px;color:var(--texto-sec);"></p>
+                <p id="ch-status" style="font-size:12px;font-weight:700;margin-top:4px;"></p>
+                <p id="ch-timer" style="font-size:12px;color:var(--texto-sec);margin-top:2px;display:none;"></p>
+              </div>
+              <div class="flex-row" style="flex-wrap:wrap;">
+                <a href="desafio.html" class="btn btn-secondary btn-sm">Gerenciar</a>
+                <a href="../leaderboard.html" class="btn btn-secondary btn-sm">Ranking</a>
+                <button id="btn-iniciar" class="btn btn-primary btn-sm" style="display:none;">▶ Iniciar Rodada</button>
+                <button id="btn-pausar"  class="btn btn-secondary btn-sm" style="display:none;">⏸ Pausar</button>
+                <button id="btn-limpar"  class="btn btn-secondary btn-sm">Limpar submissões</button>
+                <button id="btn-apagar"  class="btn btn-secondary btn-sm">Apagar desafio</button>
+              </div>
             </div>
-          <div class="flex-row" style="flex-wrap:wrap;">
-            <a href="desafio.html" class="btn btn-secondary btn-sm">Gerenciar</a>
-            <a href="../leaderboard.html" class="btn btn-secondary btn-sm">Ranking</a>
-            <button id="btn-toggle" class="btn btn-secondary btn-sm"></button>
-            <button id="btn-limpar" class="btn btn-secondary btn-sm">Limpar submissões</button>
-            <button id="btn-apagar" class="btn btn-secondary btn-sm">Apagar desafio</button>
+
+            <!-- Link para jogadores -->
+            <div style="background:var(--fundo);border-radius:8px;padding:14px 16px;">
+              <p style="font-size:12px;font-weight:700;color:var(--azul-marinho);margin-bottom:8px;">🔗 Link para jogadores — compartilhe este link:</p>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input id="link-jogador" type="text" readonly class="input" style="font-size:12px;background:#fff;flex:1;" />
+                <button id="btn-copiar" class="btn btn-secondary btn-sm" style="white-space:nowrap;">Copiar</button>
+              </div>
+            </div>
           </div>
-          <!-- Link para jogadores -->
-          <div style="background:var(--fundo);border-radius:8px;padding:14px 16px;">
-            <p style="font-size:12px;font-weight:700;color:var(--azul-marinho);margin-bottom:8px;">🔗 Link para jogadores — compartilhe este link:</p>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input id="link-jogador" type="text" readonly class="input" style="font-size:12px;background:#fff;flex:1;" />
-              <button id="btn-copiar" class="btn btn-secondary btn-sm" style="white-space:nowrap;">Copiar</button>
-            </div>
+
+          <!-- Últimas submissões (tempo real) -->
+          <div id="subs-card" class="card" style="display:none;">
+            <h3 id="subs-titulo" style="font-weight:700;color:var(--azul-marinho);font-size:16px;margin-bottom:16px;"></h3>
+            <div id="subs-list"></div>
           </div>
         </div>
+
       </div>
     </div>
   </main>
@@ -89,80 +107,124 @@
 
   <script src="../js/header.js"></script>
   <script type="module">
-    import { DESAFIO } from "../js/app.js";
+    import { db, OPENAI_KEY } from "../js/app.js";
+    import { ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
-    const subs = JSON.parse(localStorage.getItem("submissions") || "[]");
-
-    if (!DESAFIO.isActive && !DESAFIO.title) {
-      document.getElementById("card-desafio").style.display = "none";
-      document.getElementById("sem-desafio").style.display  = "block";
+    // ── Chave OpenAI ─────────────────────────────────────────
+    function atualizarKeyStatus() {
+      const key = localStorage.getItem("openaiKey");
+      document.getElementById("key-status").textContent = key ? "✓ Chave configurada" : "⚠ Chave não configurada";
+      document.getElementById("key-status").style.color = key ? "#065F46" : "#92400E";
     }
-
-    document.getElementById("ch-title").textContent = DESAFIO.title;
-    document.getElementById("ch-subs").textContent  = subs.length + " submissão(ões)";
-
-    // Gera link de jogador com config embutida na URL
-    function gerarLink() {
-      const cfg = { id: DESAFIO.id, title: DESAFIO.title, masterImage: DESAFIO.masterImage, isActive: true };
-      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(cfg))));
-      return location.origin + "/jogar.html?d=" + encoded;
-    }
-    document.getElementById("link-jogador").value = gerarLink();
-    document.getElementById("btn-copiar").addEventListener("click", () => {
-      navigator.clipboard.writeText(gerarLink()).then(() => {
-        document.getElementById("btn-copiar").textContent = "✓ Copiado!";
-        setTimeout(() => document.getElementById("btn-copiar").textContent = "Copiar", 2000);
-      });
-    });
-
-    function atualizarStatus() {
-      const cfg = (() => { try { return JSON.parse(localStorage.getItem("desafioConfig") || "null"); } catch { return null; } })();
-      const ativo = cfg ? cfg.isActive : DESAFIO.isActive;
-      document.getElementById("ch-status").textContent = ativo ? "● Ativo" : "○ Pausado";
-      document.getElementById("ch-status").style.color = ativo ? "#065F46" : "#92400E";
-      document.getElementById("btn-toggle").textContent = ativo ? "Pausar" : "Ativar";
-      return ativo;
-    }
-
-    let ativo = atualizarStatus();
-
-    document.getElementById("btn-toggle").addEventListener("click", () => {
-      const cfg = (() => { try { return JSON.parse(localStorage.getItem("desafioConfig") || "null") || {...DESAFIO}; } catch { return {...DESAFIO}; } })();
-      cfg.isActive = !ativo;
-      localStorage.setItem("desafioConfig", JSON.stringify(cfg));
-      ativo = !ativo;
-      atualizarStatus();
-    });
-
-    document.getElementById("btn-limpar").addEventListener("click", () => {
-      if (!confirm("Apagar todas as " + subs.length + " submissões? Esta ação não pode ser desfeita.")) return;
-      localStorage.removeItem("submissions");
-      document.getElementById("ch-subs").textContent = "0 submissão(ões)";
-      alert("Submissões apagadas.");
-    });
-
-    // Chave OpenAI
-    const keyAtual = localStorage.getItem("openaiKey");
-    document.getElementById("key-status").textContent = keyAtual ? "✓ Chave configurada" : "⚠ Chave não configurada";
-    document.getElementById("key-status").style.color = keyAtual ? "#065F46" : "#92400E";
+    atualizarKeyStatus();
 
     document.getElementById("btn-key").addEventListener("click", () => {
       const nova = prompt("Cole aqui sua chave da OpenAI (sk-...):", localStorage.getItem("openaiKey") || "");
       if (nova === null) return;
       if (nova.startsWith("sk-")) {
         localStorage.setItem("openaiKey", nova.trim());
-        document.getElementById("key-status").textContent = "✓ Chave configurada";
-        document.getElementById("key-status").style.color = "#065F46";
+        atualizarKeyStatus();
       } else {
         alert("Chave inválida. Deve começar com sk-");
       }
     });
 
-    document.getElementById("btn-apagar").addEventListener("click", () => {
+    // ── Link de jogador ──────────────────────────────────────
+    const linkJogador = location.origin + "/jogar.html";
+    document.getElementById("link-jogador").value = linkJogador;
+    document.getElementById("btn-copiar").addEventListener("click", () => {
+      navigator.clipboard.writeText(linkJogador).then(() => {
+        document.getElementById("btn-copiar").textContent = "✓ Copiado!";
+        setTimeout(() => document.getElementById("btn-copiar").textContent = "Copiar", 2000);
+      });
+    });
+
+    // ── Score helpers ────────────────────────────────────────
+    function scoreColor(s) { return s==null?"var(--texto-sec)":s>=70?"#065F46":s>=40?"#92400E":"#991B1B"; }
+    function scoreBg(s)    { return s==null?"var(--fundo-secao)":s>=70?"#D1FAE5":s>=40?"#FEF3C7":"#FEE2E2"; }
+
+    // ── Real-time: challenge ─────────────────────────────────
+    let DESAFIO = null;
+    onValue(ref(db, "challenge"), snap => {
+      DESAFIO = snap.val();
+
+      if (!DESAFIO || !DESAFIO.title) {
+        document.getElementById("sem-desafio").style.display = "block";
+        document.getElementById("card-desafio").style.display = "none";
+        return;
+      }
+      document.getElementById("sem-desafio").style.display = "none";
+      document.getElementById("card-desafio").style.display = "flex";
+
+      document.getElementById("ch-title").textContent = DESAFIO.title;
+
+      const ativo = DESAFIO.isActive;
+      document.getElementById("ch-status").textContent = ativo ? "● Ativo" : "○ Pausado";
+      document.getElementById("ch-status").style.color = ativo ? "#065F46" : "#92400E";
+      document.getElementById("btn-iniciar").style.display = ativo ? "none" : "inline-flex";
+      document.getElementById("btn-pausar").style.display  = ativo ? "inline-flex" : "none";
+
+      // Mostrar tempo restante se ativo e startedAt existe
+      const timerEl = document.getElementById("ch-timer");
+      if (ativo && DESAFIO.startedAt && DESAFIO.timeLimit) {
+        const rem = Math.max(0, DESAFIO.startedAt + DESAFIO.timeLimit * 1000 - Date.now());
+        const m = Math.floor(rem / 60000);
+        const s = Math.floor((rem % 60000) / 1000);
+        timerEl.textContent = rem > 0 ? `⏱ ${m}:${s.toString().padStart(2,"0")} restantes` : "⏱ Tempo esgotado";
+        timerEl.style.display = "block";
+      } else {
+        timerEl.style.display = "none";
+      }
+    });
+
+    // ── Real-time: submissions ───────────────────────────────
+    onValue(ref(db, "submissions"), snap => {
+      const raw  = snap.val() || {};
+      const subs = Object.values(raw).sort((a,b) => (b.score??0)-(a.score??0));
+
+      document.getElementById("ch-subs").textContent = subs.length + " submissão(ões)";
+
+      const card = document.getElementById("subs-card");
+      if (!subs.length) { card.style.display = "none"; return; }
+
+      card.style.display = "block";
+      document.getElementById("subs-titulo").textContent = `Últimas submissões (${subs.length})`;
+      document.getElementById("subs-list").innerHTML = subs.map(sub => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--fundo-secao);">
+          <img src="${sub.generatedImage}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;" />
+          <div style="flex:1;min-width:0;">
+            <p style="font-weight:700;font-size:14px;color:var(--azul-marinho);">${sub.name}</p>
+            <p style="font-size:12px;color:var(--texto-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub.prompt}</p>
+          </div>
+          <span class="score-badge" style="color:${scoreColor(sub.score)};background:${scoreBg(sub.score)};font-size:14px;font-weight:900;flex-shrink:0;">
+            ${sub.score!=null?Math.round(sub.score):"—"}/100
+          </span>
+        </div>
+      `).join("");
+    });
+
+    // ── Iniciar rodada ───────────────────────────────────────
+    document.getElementById("btn-iniciar").addEventListener("click", async () => {
+      if (!DESAFIO) return;
+      await update(ref(db, "challenge"), { isActive: true, startedAt: Date.now() });
+    });
+
+    // ── Pausar ───────────────────────────────────────────────
+    document.getElementById("btn-pausar").addEventListener("click", async () => {
+      await update(ref(db, "challenge"), { isActive: false });
+    });
+
+    // ── Limpar submissões ────────────────────────────────────
+    document.getElementById("btn-limpar").addEventListener("click", async () => {
+      if (!confirm("Apagar todas as submissões? Esta ação não pode ser desfeita.")) return;
+      await remove(ref(db, "submissions"));
+    });
+
+    // ── Apagar desafio ───────────────────────────────────────
+    document.getElementById("btn-apagar").addEventListener("click", async () => {
       if (!confirm("Apagar este desafio e todas as submissões? Esta ação não pode ser desfeita.")) return;
-      localStorage.setItem("desafioConfig", JSON.stringify({ id:"", title:"", masterImage:"", masterPrompt:"", isActive:false }));
-      localStorage.removeItem("submissions");
-      location.reload();
+      await remove(ref(db, "submissions"));
+      await remove(ref(db, "challenge"));
     });
   </script>
 </body>

@@ -69,6 +69,11 @@
           <h2 id="subs-titulo" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:20px;"></h2>
           <div id="subs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
         </div>
+
+        <div id="sem-desafio" class="card" style="display:none;text-align:center;padding:48px 24px;">
+          <p style="font-size:18px;color:var(--texto-sec);margin-bottom:16px;">Nenhum desafio encontrado.</p>
+          <a href="novo-desafio.html" class="btn btn-primary">Criar novo desafio</a>
+        </div>
       </div>
     </div>
   </main>
@@ -113,7 +118,8 @@
 
   <script src="../js/header.js"></script>
   <script type="module">
-    import { DESAFIO } from "../js/app.js";
+    import { db } from "../js/app.js";
+    import { ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
     function scoreColor(s) { return s==null?"var(--texto-sec)":s>=70?"#065F46":s>=40?"#92400E":"#991B1B"; }
     function scoreBg(s)    { return s==null?"var(--fundo-secao)":s>=70?"#D1FAE5":s>=40?"#FEF3C7":"#FEE2E2"; }
@@ -124,16 +130,32 @@
       setTimeout(()=>el.className="flash",2500);
     }
 
-    document.title = DESAFIO.title + " — Admin";
-    document.getElementById("ch-title").textContent  = DESAFIO.title;
-    document.getElementById("ch-img").src            = DESAFIO.masterImage;
-    document.getElementById("ch-prompt").textContent = DESAFIO.masterPrompt;
+    let DESAFIO = null;
 
-    const subs = JSON.parse(localStorage.getItem("submissions") || "[]");
-    subs.sort((a,b) => (b.score??0) - (a.score??0));
+    // ── Real-time: challenge ─────────────────────────────────
+    onValue(ref(db, "challenge"), snap => {
+      DESAFIO = snap.val();
+      if (!DESAFIO || !DESAFIO.title) {
+        document.getElementById("sem-desafio").style.display = "block";
+        document.getElementById("ch-title").textContent = "";
+        return;
+      }
+      document.getElementById("sem-desafio").style.display = "none";
+      document.title = DESAFIO.title + " — Admin";
+      document.getElementById("ch-title").textContent  = DESAFIO.title;
+      document.getElementById("ch-img").src            = DESAFIO.masterImage;
+      document.getElementById("ch-prompt").textContent = DESAFIO.masterPrompt;
+    });
 
-    if (subs.length) {
-      document.getElementById("subs-wrap").style.display = "block";
+    // ── Real-time: submissions ───────────────────────────────
+    onValue(ref(db, "submissions"), snap => {
+      const raw  = snap.val() || {};
+      const subs = Object.values(raw).sort((a,b) => (b.score??0) - (a.score??0));
+      const wrap = document.getElementById("subs-wrap");
+
+      if (!subs.length) { wrap.style.display = "none"; return; }
+
+      wrap.style.display = "block";
       document.getElementById("subs-titulo").textContent = `Submissões (${subs.length})`;
       document.getElementById("subs-grid").innerHTML = subs.map(sub => `
         <div class="sub-card">
@@ -147,38 +169,47 @@
           </div>
         </div>
       `).join("");
-    }
+    });
 
-    // Editar
+    // ── Editar ───────────────────────────────────────────────
     document.getElementById("btn-editar").addEventListener("click", () => {
+      if (!DESAFIO) return;
       document.getElementById("edit-title").value  = DESAFIO.title;
       document.getElementById("edit-img").value    = DESAFIO.masterImage;
       document.getElementById("edit-prompt").value = DESAFIO.masterPrompt;
       document.getElementById("modal-editar").classList.add("open");
     });
-    document.getElementById("btn-cancelar-edit").addEventListener("click", () => document.getElementById("modal-editar").classList.remove("open"));
-    document.getElementById("modal-editar").addEventListener("click", e => { if(e.target===document.getElementById("modal-editar")) document.getElementById("modal-editar").classList.remove("open"); });
+    document.getElementById("btn-cancelar-edit").addEventListener("click", () =>
+      document.getElementById("modal-editar").classList.remove("open")
+    );
+    document.getElementById("modal-editar").addEventListener("click", e => {
+      if (e.target === document.getElementById("modal-editar"))
+        document.getElementById("modal-editar").classList.remove("open");
+    });
 
-    document.getElementById("form-editar").addEventListener("submit", (e) => {
+    document.getElementById("form-editar").addEventListener("submit", async (e) => {
       e.preventDefault();
       const title        = document.getElementById("edit-title").value;
       const masterImage  = document.getElementById("edit-img").value;
       const masterPrompt = document.getElementById("edit-prompt").value;
-      const cfg = { ...DESAFIO, title, masterImage, masterPrompt };
-      localStorage.setItem("desafioConfig", JSON.stringify(cfg));
-      document.getElementById("ch-title").textContent  = title;
-      document.getElementById("ch-img").src            = masterImage;
-      document.getElementById("ch-prompt").textContent = masterPrompt;
+      await update(ref(db, "challenge"), { title, masterImage, masterPrompt });
       document.getElementById("modal-editar").classList.remove("open");
-      flash("Desafio atualizado! Recarregue as outras páginas para ver as mudanças.");
+      flash("Desafio atualizado com sucesso!");
     });
 
-    // QR Code
+    // ── QR Code ──────────────────────────────────────────────
     let qrGerado = false;
     document.getElementById("btn-qr").addEventListener("click", () => {
       const url = location.origin + "/jogar.html";
       document.getElementById("qr-url").textContent = url;
-      if (!qrGerado) { new QRCode(document.getElementById("qr-canvas"),{text:url,width:220,height:220,colorDark:"#001B3D",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M}); qrGerado=true; }
+      if (!qrGerado) {
+        new QRCode(document.getElementById("qr-canvas"), {
+          text: url, width: 220, height: 220,
+          colorDark: "#001B3D", colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+        qrGerado = true;
+      }
       document.getElementById("modal-qr").classList.add("open");
     });
   </script>

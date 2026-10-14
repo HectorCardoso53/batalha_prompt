@@ -58,6 +58,11 @@
                 style="resize:none;"></textarea>
             </div>
 
+            <div>
+              <label class="label" for="inp-time">Tempo limite (minutos)</label>
+              <input id="inp-time" type="number" class="input" min="1" max="60" value="3" required style="max-width:120px;" />
+            </div>
+
             <p id="erro" style="color:#DC2626;font-size:14px;background:#FEE2E2;padding:10px 14px;border-radius:8px;display:none;"></p>
             <button type="submit" id="btn-criar" class="btn btn-primary" style="width:100%;">Criar Desafio</button>
           </form>
@@ -78,7 +83,10 @@
   </footer>
 
   <script src="../js/header.js"></script>
-  <script>
+  <script type="module">
+    import { db } from "../js/app.js";
+    import { ref, set, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
     document.getElementById("btn-preview").addEventListener("click", () => {
       const url = document.getElementById("inp-img").value.trim();
       if (!url) return;
@@ -86,23 +94,34 @@
       document.getElementById("preview-wrap").style.display = "block";
     });
 
-    document.getElementById("form-novo").addEventListener("submit", (e) => {
+    document.getElementById("form-novo").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const title        = document.getElementById("inp-title").value.trim();
-      const masterImage  = document.getElementById("inp-img").value.trim();
-      const masterPrompt = document.getElementById("inp-mprompt").value.trim();
-      const erro         = document.getElementById("erro");
+      const btn         = document.getElementById("btn-criar");
+      const erro        = document.getElementById("erro");
+      const title       = document.getElementById("inp-title").value.trim();
+      const masterImage = document.getElementById("inp-img").value.trim();
+      const masterPrompt= document.getElementById("inp-mprompt").value.trim();
+      const timeLimit   = parseInt(document.getElementById("inp-time").value) * 60;
 
       if (!masterImage.startsWith("http")) {
         erro.textContent = "Cole uma URL de imagem válida (começa com http).";
         erro.style.display = "block"; return;
       }
       erro.style.display = "none";
+      btn.disabled = true; btn.textContent = "Salvando...";
 
-      const desafio = { id: "desafio-" + Date.now(), title, masterImage, masterPrompt, isActive: true };
-      localStorage.setItem("desafioConfig", JSON.stringify(desafio));
-      localStorage.removeItem("submissions");
-      location.href = "index.html";
+      try {
+        await set(ref(db, "challenge"), {
+          title, masterImage, masterPrompt,
+          timeLimit, isActive: false, startedAt: null,
+        });
+        await remove(ref(db, "submissions"));
+        location.href = "index.html";
+      } catch (err) {
+        erro.textContent = "Erro ao salvar: " + (err.message || err);
+        erro.style.display = "block";
+        btn.disabled = false; btn.textContent = "Criar Desafio";
+      }
     });
   </script>
 </body>

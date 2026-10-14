@@ -1,4 +1,4 @@
-o<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -11,12 +11,10 @@ o<!DOCTYPE html>
     .tela h1 { color:#fff; font-weight:700; font-size:clamp(16px,2vw,28px); text-align:center; flex-shrink:0; }
     .img-wrap { border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.4); flex:1 1 0; min-height:0; min-width:0; width:100%; cursor:zoom-in; }
     .img-wrap img { width:100%; height:100%; object-fit:contain; display:block; }
-
-    /* Lightbox */
     #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; cursor:zoom-out; }
     #lightbox.open { display:flex; }
-    #lightbox img { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; box-shadow:0 0 60px rgba(0,0,0,0.8); }
-    #lightbox-close { position:absolute; top:16px; right:20px; font-size:32px; color:#fff; cursor:pointer; line-height:1; opacity:0.7; }
+    #lightbox img { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; }
+    #lightbox-close { position:absolute; top:16px; right:20px; font-size:32px; color:#fff; cursor:pointer; opacity:0.7; }
     #lightbox-close:hover { opacity:1; }
   </style>
 </head>
@@ -38,7 +36,7 @@ o<!DOCTYPE html>
   </header>
 
   <main style="background:var(--azul-escuro);display:flex;flex-direction:column;">
-    <div id="tela-aguardando" class="tela" style="display:none;">
+    <div id="tela-aguardando" class="tela">
       <div style="text-align:center;color:#fff;">
         <i class="bi bi-hourglass" style="font-size:52px;color:var(--ambar);display:block;margin-bottom:16px;"></i>
         <h2 style="font-weight:700;font-size:22px;margin-bottom:8px;">Aguardando rodada...</h2>
@@ -51,7 +49,6 @@ o<!DOCTYPE html>
     </div>
   </main>
 
-  <!-- Lightbox -->
   <div id="lightbox" onclick="fecharLightbox()">
     <span id="lightbox-close" onclick="fecharLightbox()">✕</span>
     <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
@@ -70,25 +67,32 @@ o<!DOCTYPE html>
 
   <script>
     function fecharLightbox() { document.getElementById("lightbox").classList.remove("open"); }
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharLightbox(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") fecharLightbox(); });
   </script>
   <script src="js/header.js"></script>
   <script type="module">
-    import { DESAFIO } from "./js/app.js";
+    import { db } from "./js/app.js";
+    import { ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
-    if (DESAFIO.isActive && DESAFIO.masterImage) {
-      document.getElementById("desafio-titulo").textContent = DESAFIO.title;
-      document.getElementById("desafio-img").src            = DESAFIO.masterImage;
-      document.getElementById("tela-desafio").style.display = "flex";
-    } else {
-      document.getElementById("tela-aguardando").style.display = "flex";
-    }
-
-    document.querySelector(".img-wrap").addEventListener("click", () => {
-      document.getElementById("lightbox-img").src = DESAFIO.masterImage;
-      document.getElementById("lightbox").classList.add("open");
+    onValue(ref(db, "challenge"), snap => {
+      const ch = snap.val();
+      if (ch && ch.isActive && ch.masterImage) {
+        document.getElementById("desafio-titulo").textContent    = ch.title;
+        document.getElementById("desafio-img").src               = ch.masterImage;
+        document.getElementById("tela-desafio").style.display    = "flex";
+        document.getElementById("tela-aguardando").style.display = "none";
+      } else {
+        document.getElementById("tela-desafio").style.display    = "none";
+        document.getElementById("tela-aguardando").style.display = "flex";
+      }
     });
 
+    document.querySelector(".img-wrap").addEventListener("click", () => {
+      const src = document.getElementById("desafio-img").src;
+      if (!src) return;
+      document.getElementById("lightbox-img").src = src;
+      document.getElementById("lightbox").classList.add("open");
+    });
   </script>
 </body>
 </html>
