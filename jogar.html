@@ -14,6 +14,11 @@
     #timer-num { font-size:36px; font-weight:900; font-variant-numeric:tabular-nums; transition:color 0.3s; }
     #timer-num.amarelo { color:#92400E; }
     #timer-num.vermelho { color:#DC2626; }
+    .slot-badge { display:inline-block; background:var(--azul-marinho); color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:99px; margin-bottom:8px; }
+    .oponente-loading { text-align:center; padding:24px; color:var(--texto-sec); font-size:14px; }
+    .reveal-box { background:#FEF3C7; border:1px solid var(--ambar); border-radius:10px; padding:16px 20px; margin-bottom:24px; }
+    .reveal-box p:first-child { font-size:11px; font-weight:700; color:#92400E; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
+    .reveal-box p:last-child { font-size:14px; line-height:1.6; color:#78350F; }
   </style>
 </head>
 <body>
@@ -30,7 +35,7 @@
       <div class="page-inner-md" style="max-width:440px;">
         <h1 class="secao-titulo" style="text-align:left;">Entrar na Batalha</h1>
         <div class="secao-traco" style="margin:8px 0 24px;"></div>
-        <div id="aviso" class="aviso-amarelo" style="display:none;">Nenhum desafio ativo. Aguarde o admin.</div>
+        <div id="aviso" class="aviso-amarelo" style="display:none;"></div>
         <div class="card">
           <form id="form-login" style="display:flex;flex-direction:column;gap:14px;">
             <div>
@@ -43,15 +48,29 @@
       </div>
     </div>
 
+    <!-- ESPERA (slot reservado, aguardando admin iniciar) -->
+    <div id="step-espera" class="step page">
+      <div class="page-inner-md" style="max-width:440px;text-align:center;">
+        <div class="card" style="padding:48px 24px;">
+          <p id="espera-slot" class="slot-badge"></p>
+          <h2 id="espera-nome" style="font-weight:700;font-size:22px;color:var(--azul-marinho);margin:12px 0 8px;"></h2>
+          <p style="color:var(--texto-sec);font-size:14px;">Aguardando o admin iniciar a rodada...</p>
+          <div style="margin-top:24px;font-size:32px;">⏳</div>
+        </div>
+      </div>
+    </div>
+
     <!-- JOGO -->
     <div id="step-game" class="step page">
       <div class="page-inner">
         <div style="margin-bottom:16px;">
-          <p style="font-size:13px;color:var(--texto-sec);">Jogando como <strong id="game-nome" style="color:var(--azul-marinho);"></strong></p>
+          <p style="font-size:13px;color:var(--texto-sec);">
+            <span id="game-slot-badge" class="slot-badge"></span>
+            Jogando como <strong id="game-nome" style="color:var(--azul-marinho);"></strong>
+          </p>
           <h1 id="game-title" style="font-weight:700;font-size:22px;color:var(--azul-marinho);"></h1>
         </div>
 
-        <!-- Timer -->
         <div id="timer-box">
           <span style="font-size:14px;font-weight:700;color:var(--texto-sec);">⏱ Tempo restante:</span>
           <span id="timer-num">--:--</span>
@@ -82,6 +101,8 @@
       <div class="page-inner">
         <h1 class="secao-titulo" style="text-align:left;">Seu Resultado</h1>
         <div class="secao-traco" style="margin:8px 0 24px;"></div>
+
+        <!-- Pontuação própria -->
         <div class="card flex-row" style="align-items:center;gap:20px;margin-bottom:24px;">
           <div>
             <p style="font-size:13px;color:var(--texto-sec);font-weight:700;margin-bottom:4px;">Pontuação de similaridade</p>
@@ -92,14 +113,47 @@
           </div>
           <div id="score-msg" style="flex:1;min-width:200px;border-radius:10px;padding:16px 20px;font-weight:700;font-size:15px;"></div>
         </div>
+
+        <!-- Suas imagens -->
         <div class="grid-auto" style="margin-bottom:24px;">
           <div class="card"><p class="label-upper">Imagem Master</p><img id="res-master" src="" alt="Master" class="img-ambar" /></div>
           <div class="card"><p class="label-upper">Sua Geração</p><img id="res-gerada" src="" alt="Gerada" class="img-azul" /></div>
         </div>
+
+        <!-- Seu prompt -->
         <div class="card" style="margin-bottom:24px;">
           <p style="font-weight:700;font-size:13px;color:var(--texto-sec);margin-bottom:6px;">Prompt enviado:</p>
           <p id="res-prompt" class="prompt-citado"></p>
         </div>
+
+        <!-- Prompt original revelado -->
+        <div class="reveal-box" style="margin-bottom:24px;">
+          <p>Prompt Original (revelado)</p>
+          <p id="res-master-prompt"></p>
+        </div>
+
+        <!-- Adversário -->
+        <div class="card" style="margin-bottom:24px;">
+          <h2 style="font-weight:700;font-size:16px;color:var(--azul-marinho);margin-bottom:16px;">⚔️ Adversário</h2>
+          <div id="oponente-loading" class="oponente-loading">
+            <p>⏳ Aguardando adversário concluir...</p>
+          </div>
+          <div id="oponente-resultado" style="display:none;">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+              <p id="op-nome" style="font-weight:700;font-size:16px;color:var(--azul-marinho);flex:1;"></p>
+              <span id="op-score-badge" class="score-badge" style="font-size:18px;font-weight:900;"></span>
+            </div>
+            <img id="op-img" src="" alt="Imagem do adversário" class="img-azul" style="margin-bottom:12px;" />
+            <p style="font-size:12px;color:var(--texto-sec);margin-bottom:4px;font-weight:700;">Prompt do adversário:</p>
+            <p id="op-prompt" class="prompt-citado"></p>
+          </div>
+        </div>
+
+        <!-- Banner vencedor -->
+        <div id="banner-vencedor" style="display:none;text-align:center;padding:24px;border-radius:12px;margin-bottom:24px;">
+          <p id="banner-txt" style="font-size:22px;font-weight:900;"></p>
+        </div>
+
         <a href="leaderboard.html" class="btn btn-primary">🏆 Ver Ranking</a>
       </div>
     </div>
@@ -113,29 +167,33 @@
     <div class="footer-dir">
       <p>SEMEG</p>
       <p>Secretaria Municipal de Eficiência Governamental</p>
-      <a href="admin/index.html" style="font-size:11px;color:rgba(255,255,255,0.25);text-decoration:none;margin-top:4px;display:inline-block;">Admin</a>
+      <a href="admin/index.html" style="font-size:11px;color:rgba(255,255,255,.25);text-decoration:none;margin-top:4px;display:inline-block;">Admin</a>
     </div>
   </footer>
 
   <script src="js/header.js"></script>
   <script type="module">
     import { db } from "./js/app.js";
-    import { ref, onValue, push, get } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+    import { ref, onValue, get, set, update } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
-    let DESAFIO = null;
+    let CHALLENGE  = null;
+    let ROUND      = null;
+    let mySlot     = null; // "player1" | "player2"
+    let nomeJogador= "";
     let timerInterval = null;
-    let nomeJogador = "";
 
     function showStep(id) {
       document.querySelectorAll(".step").forEach(s => s.classList.remove("ativo"));
       document.getElementById(id).classList.add("ativo");
     }
 
+    function scoreColor(s) { return s>=70?"#065F46":s>=40?"#92400E":"#991B1B"; }
+    function scoreBg(s)    { return s>=70?"#D1FAE5":s>=40?"#FEF3C7":"#FEE2E2"; }
+
     // ── Timer ────────────────────────────────────────────────
     function iniciarTimer(startedAt, timeLimit) {
       if (timerInterval) clearInterval(timerInterval);
       const end = startedAt + timeLimit * 1000;
-
       function tick() {
         const rem = Math.max(0, end - Date.now());
         const m   = Math.floor(rem / 60000);
@@ -154,36 +212,96 @@
       timerInterval = setInterval(tick, 500);
     }
 
-    // ── Escuta desafio em tempo real ─────────────────────────
+    // ── Listener challenge ───────────────────────────────────
     onValue(ref(db, "challenge"), snap => {
-      DESAFIO = snap.val();
-      const loginStep = document.getElementById("step-login");
-      const ativo = loginStep.classList.contains("ativo");
-
-      if (!DESAFIO || !DESAFIO.isActive) {
-        document.getElementById("aviso").style.display  = "block";
-        document.getElementById("btn-login").disabled   = true;
+      CHALLENGE = snap.val();
+      const aviso = document.getElementById("aviso");
+      const btn   = document.getElementById("btn-login");
+      if (!CHALLENGE || !CHALLENGE.isActive) {
+        aviso.textContent = "Nenhum desafio ativo. Aguarde o admin.";
+        aviso.style.display = "block";
+        btn.disabled = true;
       } else {
-        document.getElementById("aviso").style.display  = "none";
-        document.getElementById("btn-login").disabled   = false;
-      }
-
-      // Se jogador já está na tela de jogo, atualiza o timer
-      if (document.getElementById("step-game").classList.contains("ativo") && DESAFIO?.startedAt) {
-        iniciarTimer(DESAFIO.startedAt, DESAFIO.timeLimit || 120);
+        aviso.style.display = "none";
+        btn.disabled = false;
       }
     });
 
-    // ── Login ────────────────────────────────────────────────
-    document.getElementById("form-login").addEventListener("submit", e => {
-      e.preventDefault();
-      if (!DESAFIO || !DESAFIO.isActive) return;
-      nomeJogador = document.getElementById("inp-nome").value.trim();
-      document.getElementById("game-nome").textContent  = nomeJogador;
-      document.getElementById("game-title").textContent = DESAFIO.title;
-      document.getElementById("game-img").src           = DESAFIO.masterImage;
-      if (DESAFIO.startedAt) iniciarTimer(DESAFIO.startedAt, DESAFIO.timeLimit || 120);
+    // ── Listener rodada atual ────────────────────────────────
+    onValue(ref(db, "currentRound"), snap => {
+      ROUND = snap.val();
+
+      // Atualiza step-espera → step-game quando admin inicia
+      if (document.getElementById("step-espera").classList.contains("ativo") && ROUND?.status === "active") {
+        entrarNoJogo();
+        return;
+      }
+
+      // Atualiza adversário no step-result em tempo real
+      if (document.getElementById("step-result").classList.contains("ativo") && mySlot) {
+        atualizarOponente();
+        atualizarBanner();
+      }
+    });
+
+    function entrarNoJogo() {
+      if (!CHALLENGE || !ROUND) return;
+      document.getElementById("game-nome").textContent      = nomeJogador;
+      document.getElementById("game-title").textContent     = CHALLENGE.title;
+      document.getElementById("game-img").src               = CHALLENGE.masterImage;
+      document.getElementById("game-slot-badge").textContent = mySlot === "player1" ? "Jogador 1" : "Jogador 2";
+      if (ROUND.startedAt) iniciarTimer(ROUND.startedAt, CHALLENGE.timeLimit || 180);
       showStep("step-game");
+    }
+
+    // ── Login ────────────────────────────────────────────────
+    document.getElementById("form-login").addEventListener("submit", async e => {
+      e.preventDefault();
+      const btn = document.getElementById("btn-login");
+      if (!CHALLENGE || !CHALLENGE.isActive) return;
+
+      nomeJogador = document.getElementById("inp-nome").value.trim();
+      btn.disabled = true; btn.textContent = "Entrando...";
+
+      const aviso = document.getElementById("aviso");
+
+      // Verifica round atual
+      const roundSnap = await get(ref(db, "currentRound"));
+      const round = roundSnap.val();
+
+      if (!round || round.status === "done") {
+        aviso.textContent = "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
+        aviso.style.display = "block";
+        btn.disabled = false; btn.textContent = "Entrar no desafio";
+        return;
+      }
+
+      // Tenta ocupar um slot
+      if (!round.player1) {
+        await set(ref(db, "currentRound/player1"), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
+        mySlot = "player1";
+      } else if (!round.player2) {
+        await set(ref(db, "currentRound/player2"), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
+        mySlot = "player2";
+      } else {
+        aviso.textContent = "Os dois slots desta rodada já estão ocupados. Aguarde a próxima.";
+        aviso.style.display = "block";
+        btn.disabled = false; btn.textContent = "Entrar no desafio";
+        return;
+      }
+
+      aviso.style.display = "none";
+
+      if (round.status === "active") {
+        // Rodada já em andamento → vai direto pro jogo
+        ROUND = (await get(ref(db, "currentRound"))).val();
+        entrarNoJogo();
+      } else {
+        // Aguardando admin iniciar
+        document.getElementById("espera-slot").textContent = mySlot === "player1" ? "Jogador 1" : "Jogador 2";
+        document.getElementById("espera-nome").textContent = nomeJogador;
+        showStep("step-espera");
+      }
     });
 
     // ── Submit Prompt ────────────────────────────────────────
@@ -205,7 +323,6 @@
 
       const keySnap = await get(ref(db, "openaiKey"));
       const OPENAI_KEY = keySnap.val() || localStorage.getItem("openaiKey") || "";
-
       if (!OPENAI_KEY) {
         erro.textContent = "Chave OpenAI não configurada. Avise o admin.";
         erro.style.display = "block"; return;
@@ -215,7 +332,7 @@
       loading.style.display = "block"; erro.style.display = "none";
 
       try {
-        // 1. DALL-E 3
+        // 1. DALL-E 2
         const imgRes  = await fetch("https://api.openai.com/v1/images/generations", {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${OPENAI_KEY}` },
@@ -225,7 +342,7 @@
         if (!imgRes.ok) throw new Error("DALL-E: " + (imgData.error?.message || JSON.stringify(imgData)));
         const generatedImage = imgData.data[0].url;
 
-        // 2. GPT-4o Vision
+        // 2. GPT-4o Vision — score
         btn.textContent = "Calculando score...";
         const sRes  = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
@@ -234,25 +351,42 @@
             model: "gpt-4o", max_tokens: 10,
             messages: [{ role: "user", content: [
               { type: "text", text: "Compare these two images and return ONLY a number from 0 to 100 representing visual similarity. Return only the number." },
-              { type: "image_url", image_url: { url: DESAFIO.masterImage, detail: "low" } },
-              { type: "image_url", image_url: { url: generatedImage,      detail: "low" } },
+              { type: "image_url", image_url: { url: CHALLENGE.masterImage, detail: "low" } },
+              { type: "image_url", image_url: { url: generatedImage, detail: "low" } },
             ]}],
           }),
         });
         const sData = await sRes.json();
         if (!sRes.ok) throw new Error(sData.error?.message || "Erro ao calcular score.");
         const score = Math.min(100, Math.max(0, parseFloat(sData.choices[0].message.content.trim()) || 0));
+        const scoreFinal = Math.round(score);
 
-        // 3. Salva no Firebase
-        await push(ref(db, "submissions"), {
-          name: nomeJogador, prompt, generatedImage,
-          score: Math.round(score), ts: Date.now(),
+        // 3. Salva no slot do Firebase
+        await update(ref(db, `currentRound/${mySlot}`), {
+          prompt, generatedImage, score: scoreFinal, done: true,
         });
 
-        // 4. Mostra resultado
+        // 4. Salva também em /submissions para o leaderboard
+        const { push } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js");
+        await push(ref(db, "submissions"), {
+          name: nomeJogador, prompt, generatedImage, score: scoreFinal, ts: Date.now(),
+        });
+
+        // 5. Verifica se é o segundo a submeter → define vencedor
+        const roundSnap = await get(ref(db, "currentRound"));
+        const roundAtual = roundSnap.val();
+        const opSlot = mySlot === "player1" ? "player2" : "player1";
+        const oponente = roundAtual?.[opSlot];
+        if (oponente?.done) {
+          const opScore = oponente.score ?? 0;
+          const winner = scoreFinal > opScore ? mySlot : opScore > scoreFinal ? opSlot : "tie";
+          await update(ref(db, "currentRound"), { winner, status: "done" });
+        }
+
+        // 6. Mostra resultado
         const num = document.getElementById("score-num");
         const msg = document.getElementById("score-msg");
-        num.textContent = Math.round(score);
+        num.textContent = scoreFinal;
         if (score >= 70) {
           num.style.color="#065F46"; msg.style.background="#D1FAE5"; msg.style.color="#065F46";
           msg.textContent="🎉 Excelente! Sua imagem ficou muito parecida com a original.";
@@ -263,11 +397,15 @@
           num.style.color="#991B1B"; msg.style.background="#FEE2E2"; msg.style.color="#991B1B";
           msg.textContent="💪 Continue tentando! Detalhe mais a composição e os elementos.";
         }
-        document.getElementById("res-master").src         = DESAFIO.masterImage;
+        document.getElementById("res-master").src         = CHALLENGE.masterImage;
         document.getElementById("res-gerada").src         = generatedImage;
         document.getElementById("res-prompt").textContent = prompt;
+        document.getElementById("res-master-prompt").textContent = CHALLENGE.masterPrompt || "";
+
         if (timerInterval) clearInterval(timerInterval);
         showStep("step-result");
+        atualizarOponente();
+        atualizarBanner();
 
       } catch (err) {
         erro.textContent = err.message || "Erro ao enviar.";
@@ -276,6 +414,45 @@
         loading.style.display = "none";
       }
     });
+
+    // ── Oponente em tempo real ───────────────────────────────
+    function atualizarOponente() {
+      if (!ROUND || !mySlot) return;
+      const opSlot = mySlot === "player1" ? "player2" : "player1";
+      const op = ROUND[opSlot];
+      if (op?.done) {
+        document.getElementById("oponente-loading").style.display = "none";
+        document.getElementById("oponente-resultado").style.display = "block";
+        document.getElementById("op-nome").textContent    = op.name;
+        document.getElementById("op-img").src             = op.generatedImage;
+        document.getElementById("op-prompt").textContent  = op.prompt;
+        const s = op.score ?? 0;
+        const badge = document.getElementById("op-score-badge");
+        badge.textContent = `${Math.round(s)}/100`;
+        badge.style.color      = scoreColor(s);
+        badge.style.background = scoreBg(s);
+      } else {
+        document.getElementById("oponente-loading").style.display = "block";
+        document.getElementById("oponente-resultado").style.display = "none";
+      }
+    }
+
+    function atualizarBanner() {
+      if (!ROUND?.winner || !mySlot) return;
+      const banner = document.getElementById("banner-vencedor");
+      const txt    = document.getElementById("banner-txt");
+      banner.style.display = "block";
+      if (ROUND.winner === "tie") {
+        banner.style.background = "#FEF3C7"; txt.style.color = "#92400E";
+        txt.textContent = "🤝 Empate!";
+      } else if (ROUND.winner === mySlot) {
+        banner.style.background = "#D1FAE5"; txt.style.color = "#065F46";
+        txt.textContent = "🏆 Você venceu esta rodada!";
+      } else {
+        banner.style.background = "#FEE2E2"; txt.style.color = "#991B1B";
+        txt.textContent = "😔 Você perdeu esta rodada. Tente na próxima!";
+      }
+    }
   </script>
 </body>
 </html>

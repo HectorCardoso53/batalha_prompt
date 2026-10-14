@@ -39,47 +39,89 @@
           <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;">
               <p style="font-weight:700;color:var(--azul-marinho);margin-bottom:2px;">Chave OpenAI</p>
-              <p id="key-status" style="font-size:13px;color:var(--texto-sec);"></p>
+              <p id="key-status" style="font-size:13px;"></p>
             </div>
             <button id="btn-key" class="btn btn-secondary btn-sm">Configurar chave</button>
           </div>
         </div>
 
-        <!-- Sem desafio -->
-        <div id="sem-desafio" class="card" style="display:none;text-align:center;padding:48px 24px;">
+        <!-- Desafio -->
+        <div id="sem-desafio" class="card" style="display:none;text-align:center;padding:48px 24px;margin-bottom:24px;">
           <p style="font-size:18px;color:var(--texto-sec);margin-bottom:16px;">Nenhum desafio criado.</p>
           <a href="novo-desafio.html" class="btn btn-primary">Criar novo desafio</a>
         </div>
+        <div id="card-desafio" class="card" style="display:none;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <h2 id="ch-title" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:4px;"></h2>
+              <p id="ch-status" style="font-size:12px;font-weight:700;"></p>
+            </div>
+            <div class="flex-row">
+              <a href="desafio.html" class="btn btn-secondary btn-sm">Gerenciar desafio</a>
+              <button id="btn-toggle" class="btn btn-secondary btn-sm"></button>
+              <button id="btn-apagar" class="btn btn-secondary btn-sm">Apagar desafio</button>
+            </div>
+          </div>
+        </div>
 
-        <!-- Card desafio -->
-        <div id="card-desafio" style="display:none;display:flex;flex-direction:column;gap:20px;">
+        <!-- ── Rodadas ── -->
+        <div id="sem-rodada" class="card" style="display:none;text-align:center;padding:32px 24px;margin-bottom:24px;">
+          <p style="color:var(--texto-sec);margin-bottom:16px;">Nenhuma rodada criada ainda.</p>
+          <button id="btn-nova-rodada-vazio" class="btn btn-primary">⚔️ Criar Rodada 1</button>
+        </div>
 
-          <!-- Cabeçalho do desafio -->
+        <div id="card-rodada" style="display:none;display:flex;flex-direction:column;gap:20px;">
+
+          <!-- Cabeçalho da rodada -->
           <div class="card">
-            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
-              <div style="flex:1;min-width:200px;">
-                <h2 id="ch-title" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:4px;"></h2>
-                <p id="ch-subs" style="font-size:13px;color:var(--texto-sec);"></p>
-                <p id="ch-status" style="font-size:12px;font-weight:700;margin-top:4px;"></p>
-                <p id="ch-timer" style="font-size:12px;color:var(--texto-sec);margin-top:2px;display:none;"></p>
+            <div class="flex-between" style="margin-bottom:16px;">
+              <div>
+                <h2 id="rodada-titulo" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:4px;"></h2>
+                <p id="rodada-status" style="font-size:12px;font-weight:700;"></p>
               </div>
               <div class="flex-row" style="flex-wrap:wrap;">
-                <a href="desafio.html" class="btn btn-secondary btn-sm">Gerenciar</a>
-                <a href="../leaderboard.html" class="btn btn-secondary btn-sm">Ranking</a>
-                <button id="btn-iniciar" class="btn btn-primary btn-sm" style="display:none;">▶ Iniciar Rodada</button>
-                <button id="btn-pausar"  class="btn btn-secondary btn-sm" style="display:none;">⏸ Pausar</button>
-                <button id="btn-limpar"  class="btn btn-secondary btn-sm">Limpar submissões</button>
-                <button id="btn-apagar"  class="btn btn-secondary btn-sm">Apagar desafio</button>
+                <button id="btn-iniciar-rodada" class="btn btn-primary btn-sm" style="display:none;">▶ Iniciar Rodada</button>
+                <button id="btn-revelar" class="btn btn-secondary btn-sm" style="display:none;">🏁 Encerrar e Revelar</button>
+                <button id="btn-proxima" class="btn btn-secondary btn-sm">⏭ Próxima Rodada</button>
               </div>
             </div>
 
+            <!-- Slots dos jogadores -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+              <!-- Jogador 1 -->
+              <div style="background:var(--fundo);border-radius:10px;padding:16px;">
+                <p style="font-size:11px;font-weight:700;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 1</p>
+                <p id="p1-nome" style="font-weight:700;color:var(--azul-marinho);font-size:15px;margin-bottom:4px;">—</p>
+                <p id="p1-status" style="font-size:12px;color:var(--texto-sec);"></p>
+                <div id="p1-result" style="display:none;margin-top:10px;">
+                  <img id="p1-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
+                  <span id="p1-score" class="score-badge"></span>
+                </div>
+              </div>
+              <!-- Jogador 2 -->
+              <div style="background:var(--fundo);border-radius:10px;padding:16px;">
+                <p style="font-size:11px;font-weight:700;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 2</p>
+                <p id="p2-nome" style="font-weight:700;color:var(--azul-marinho);font-size:15px;margin-bottom:4px;">—</p>
+                <p id="p2-status" style="font-size:12px;color:var(--texto-sec);"></p>
+                <div id="p2-result" style="display:none;margin-top:10px;">
+                  <img id="p2-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
+                  <span id="p2-score" class="score-badge"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Banner vencedor -->
+            <div id="vencedor-banner" style="display:none;padding:14px 20px;border-radius:10px;text-align:center;">
+              <p id="vencedor-txt" style="font-weight:700;font-size:16px;"></p>
+            </div>
           </div>
 
-          <!-- Últimas submissões (tempo real) -->
-          <div id="subs-card" class="card" style="display:none;">
-            <h3 id="subs-titulo" style="font-weight:700;color:var(--azul-marinho);font-size:16px;margin-bottom:16px;"></h3>
-            <div id="subs-list"></div>
+          <!-- Histórico de rodadas -->
+          <div id="historico-card" class="card" style="display:none;">
+            <h3 style="font-weight:700;color:var(--azul-marinho);font-size:16px;margin-bottom:16px;">Histórico de Rodadas</h3>
+            <div id="historico-lista"></div>
           </div>
+
         </div>
 
       </div>
@@ -99,8 +141,8 @@
 
   <script src="../js/header.js"></script>
   <script type="module">
-    import { db, OPENAI_KEY } from "../js/app.js";
-    import { ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+    import { db } from "../js/app.js";
+    import { ref, onValue, set, remove, update, get } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
     // ── Chave OpenAI ─────────────────────────────────────────
     function atualizarKeyStatus() {
@@ -118,97 +160,179 @@
         localStorage.setItem("openaiKey", trimmed);
         await set(ref(db, "openaiKey"), trimmed);
         atualizarKeyStatus();
-      } else {
-        alert("Chave inválida. Deve começar com sk-");
-      }
+      } else { alert("Chave inválida. Deve começar com sk-"); }
     });
 
     // ── Score helpers ────────────────────────────────────────
-    function scoreColor(s) { return s==null?"var(--texto-sec)":s>=70?"#065F46":s>=40?"#92400E":"#991B1B"; }
-    function scoreBg(s)    { return s==null?"var(--fundo-secao)":s>=70?"#D1FAE5":s>=40?"#FEF3C7":"#FEE2E2"; }
+    function scoreColor(s) { return s>=70?"#065F46":s>=40?"#92400E":"#991B1B"; }
+    function scoreBg(s)    { return s>=70?"#D1FAE5":s>=40?"#FEF3C7":"#FEE2E2"; }
 
-    // ── Real-time: challenge ─────────────────────────────────
+    function renderSlotAdmin(nomeEl, statusEl, resultEl, imgEl, scoreEl, player) {
+      nomeEl.textContent   = player?.name || "—";
+      statusEl.textContent = player ? (player.done ? "✓ Enviou" : "⏳ Jogando...") : "Aguardando...";
+      statusEl.style.color = player?.done ? "#065F46" : "var(--texto-sec)";
+      if (player?.done && player.generatedImage) {
+        resultEl.style.display = "block";
+        imgEl.src = player.generatedImage;
+        const s = player.score ?? 0;
+        scoreEl.textContent  = `${Math.round(s)}/100`;
+        scoreEl.style.color  = scoreColor(s);
+        scoreEl.style.background = scoreBg(s);
+      } else {
+        resultEl.style.display = "none";
+      }
+    }
+
+    // ── Desafio ──────────────────────────────────────────────
     let DESAFIO = null;
     onValue(ref(db, "challenge"), snap => {
       DESAFIO = snap.val();
-
-      if (!DESAFIO || !DESAFIO.title) {
+      if (!DESAFIO?.title) {
         document.getElementById("sem-desafio").style.display = "block";
         document.getElementById("card-desafio").style.display = "none";
+        document.getElementById("sem-rodada").style.display = "none";
+        document.getElementById("card-rodada").style.display = "none";
         return;
       }
       document.getElementById("sem-desafio").style.display = "none";
-      document.getElementById("card-desafio").style.display = "flex";
-
+      document.getElementById("card-desafio").style.display = "block";
       document.getElementById("ch-title").textContent = DESAFIO.title;
-
       const ativo = DESAFIO.isActive;
       document.getElementById("ch-status").textContent = ativo ? "● Ativo" : "○ Pausado";
       document.getElementById("ch-status").style.color = ativo ? "#065F46" : "#92400E";
-      document.getElementById("btn-iniciar").style.display = ativo ? "none" : "inline-flex";
-      document.getElementById("btn-pausar").style.display  = ativo ? "inline-flex" : "none";
-
-      // Mostrar tempo restante se ativo e startedAt existe
-      const timerEl = document.getElementById("ch-timer");
-      if (ativo && DESAFIO.startedAt && DESAFIO.timeLimit) {
-        const rem = Math.max(0, DESAFIO.startedAt + DESAFIO.timeLimit * 1000 - Date.now());
-        const m = Math.floor(rem / 60000);
-        const s = Math.floor((rem % 60000) / 1000);
-        timerEl.textContent = rem > 0 ? `⏱ ${m}:${s.toString().padStart(2,"0")} restantes` : "⏱ Tempo esgotado";
-        timerEl.style.display = "block";
-      } else {
-        timerEl.style.display = "none";
-      }
+      document.getElementById("btn-toggle").textContent = ativo ? "⏸ Pausar" : "▶ Ativar";
     });
 
-    // ── Real-time: submissions ───────────────────────────────
-    onValue(ref(db, "submissions"), snap => {
-      const raw  = snap.val() || {};
-      const subs = Object.values(raw).sort((a,b) => (b.score??0)-(a.score??0));
+    document.getElementById("btn-toggle").addEventListener("click", async () => {
+      if (!DESAFIO) return;
+      await update(ref(db, "challenge"), { isActive: !DESAFIO.isActive });
+    });
 
-      document.getElementById("ch-subs").textContent = subs.length + " submissão(ões)";
+    document.getElementById("btn-apagar").addEventListener("click", async () => {
+      if (!confirm("Apagar este desafio e todas as rodadas? Ação irreversível.")) return;
+      await remove(ref(db, "challenge"));
+      await remove(ref(db, "currentRound"));
+      await remove(ref(db, "rounds"));
+      await remove(ref(db, "submissions"));
+    });
 
-      const card = document.getElementById("subs-card");
-      if (!subs.length) { card.style.display = "none"; return; }
+    // ── Rodada atual ─────────────────────────────────────────
+    let RODADA = null;
+    onValue(ref(db, "currentRound"), snap => {
+      RODADA = snap.val();
 
-      card.style.display = "block";
-      document.getElementById("subs-titulo").textContent = `Últimas submissões (${subs.length})`;
-      document.getElementById("subs-list").innerHTML = subs.map(sub => `
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--fundo-secao);">
-          <img src="${sub.generatedImage}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;" />
-          <div style="flex:1;min-width:0;">
-            <p style="font-weight:700;font-size:14px;color:var(--azul-marinho);">${sub.name}</p>
-            <p style="font-size:12px;color:var(--texto-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub.prompt}</p>
-          </div>
-          <span class="score-badge" style="color:${scoreColor(sub.score)};background:${scoreBg(sub.score)};font-size:14px;font-weight:900;flex-shrink:0;">
-            ${sub.score!=null?Math.round(sub.score):"—"}/100
-          </span>
-        </div>
-      `).join("");
+      if (!DESAFIO?.title) return; // sem desafio, não mostra
+
+      if (!RODADA) {
+        document.getElementById("sem-rodada").style.display = "block";
+        document.getElementById("card-rodada").style.display = "none";
+        return;
+      }
+      document.getElementById("sem-rodada").style.display = "none";
+      document.getElementById("card-rodada").style.display = "flex";
+
+      document.getElementById("rodada-titulo").textContent = `Rodada ${RODADA.number}`;
+
+      const statusMap = { waiting: "● Aguardando jogadores", active: "● Em andamento", done: "● Encerrada" };
+      const colorMap  = { waiting: "#92400E", active: "#065F46", done: "#999" };
+      document.getElementById("rodada-status").textContent = statusMap[RODADA.status] || "";
+      document.getElementById("rodada-status").style.color = colorMap[RODADA.status] || "";
+
+      document.getElementById("btn-iniciar-rodada").style.display = RODADA.status === "waiting" ? "inline-flex" : "none";
+      document.getElementById("btn-revelar").style.display        = RODADA.status === "active"  ? "inline-flex" : "none";
+
+      renderSlotAdmin(
+        document.getElementById("p1-nome"), document.getElementById("p1-status"),
+        document.getElementById("p1-result"), document.getElementById("p1-img"), document.getElementById("p1-score"),
+        RODADA.player1
+      );
+      renderSlotAdmin(
+        document.getElementById("p2-nome"), document.getElementById("p2-status"),
+        document.getElementById("p2-result"), document.getElementById("p2-img"), document.getElementById("p2-score"),
+        RODADA.player2
+      );
+
+      const banner = document.getElementById("vencedor-banner");
+      const txt    = document.getElementById("vencedor-txt");
+      if (RODADA.winner) {
+        banner.style.display = "block";
+        if (RODADA.winner === "tie") {
+          banner.style.background = "#FEF3C7"; txt.style.color = "#92400E";
+          txt.textContent = "🤝 Empate!";
+        } else {
+          const w = RODADA.winner === "player1" ? RODADA.player1 : RODADA.player2;
+          banner.style.background = "#D1FAE5"; txt.style.color = "#065F46";
+          txt.textContent = `🏆 Vencedor: ${w?.name || ""}`;
+        }
+      } else { banner.style.display = "none"; }
     });
 
     // ── Iniciar rodada ───────────────────────────────────────
-    document.getElementById("btn-iniciar").addEventListener("click", async () => {
-      if (!DESAFIO) return;
-      await update(ref(db, "challenge"), { isActive: true, startedAt: Date.now() });
+    document.getElementById("btn-iniciar-rodada").addEventListener("click", async () => {
+      await update(ref(db, "currentRound"), { status: "active", startedAt: Date.now() });
     });
 
-    // ── Pausar ───────────────────────────────────────────────
-    document.getElementById("btn-pausar").addEventListener("click", async () => {
-      await update(ref(db, "challenge"), { isActive: false });
+    // ── Encerrar e revelar ────────────────────────────────────
+    document.getElementById("btn-revelar").addEventListener("click", async () => {
+      if (!confirm("Encerrar a rodada e revelar os resultados no projetor?")) return;
+      // Calcula vencedor caso não tenha sido definido ainda
+      const p1 = RODADA?.player1;
+      const p2 = RODADA?.player2;
+      let winner = RODADA?.winner;
+      if (!winner && p1?.done && p2?.done) {
+        const s1 = p1.score ?? 0, s2 = p2.score ?? 0;
+        winner = s1 > s2 ? "player1" : s2 > s1 ? "player2" : "tie";
+      } else if (!winner && p1?.done && !p2?.done) {
+        winner = "player1";
+      } else if (!winner && !p1?.done && p2?.done) {
+        winner = "player2";
+      }
+      await update(ref(db, "currentRound"), { status: "done", winner: winner || null });
     });
 
-    // ── Limpar submissões ────────────────────────────────────
-    document.getElementById("btn-limpar").addEventListener("click", async () => {
-      if (!confirm("Apagar todas as submissões? Esta ação não pode ser desfeita.")) return;
-      await remove(ref(db, "submissions"));
+    // ── Próxima rodada ───────────────────────────────────────
+    document.getElementById("btn-proxima").addEventListener("click", async () => {
+      if (!confirm("Iniciar a próxima rodada? A rodada atual será arquivada.")) return;
+      if (RODADA) {
+        await set(ref(db, `rounds/${RODADA.number}`), RODADA);
+      }
+      const nextNum = (RODADA?.number || 0) + 1;
+      await set(ref(db, "currentRound"), {
+        number: nextNum, status: "waiting",
+        startedAt: null, player1: null, player2: null, winner: null,
+      });
     });
 
-    // ── Apagar desafio ───────────────────────────────────────
-    document.getElementById("btn-apagar").addEventListener("click", async () => {
-      if (!confirm("Apagar este desafio e todas as submissões? Esta ação não pode ser desfeita.")) return;
-      await remove(ref(db, "submissions"));
-      await remove(ref(db, "challenge"));
+    // ── Criar primeira rodada ────────────────────────────────
+    document.getElementById("btn-nova-rodada-vazio").addEventListener("click", async () => {
+      await set(ref(db, "currentRound"), {
+        number: 1, status: "waiting",
+        startedAt: null, player1: null, player2: null, winner: null,
+      });
+    });
+
+    // ── Histórico de rodadas ─────────────────────────────────
+    onValue(ref(db, "rounds"), snap => {
+      const data = snap.val();
+      const hCard = document.getElementById("historico-card");
+      if (!data) { hCard.style.display = "none"; return; }
+
+      const rodadas = Object.values(data).sort((a,b) => (a.number||0)-(b.number||0));
+      hCard.style.display = "block";
+      document.getElementById("historico-lista").innerHTML = rodadas.map(r => {
+        const w = r.winner === "player1" ? r.player1 : r.winner === "player2" ? r.player2 : null;
+        return `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--fundo-secao);">
+            <span style="font-weight:700;color:var(--azul-marinho);min-width:80px;">Rodada ${r.number}</span>
+            <span style="flex:1;color:var(--texto-sec);font-size:13px;">
+              ${r.player1?.name||"—"} vs ${r.player2?.name||"—"}
+            </span>
+            <span style="font-size:13px;font-weight:700;color:${w?"#065F46":"#999"};">
+              ${r.winner==="tie"?"🤝 Empate":w?`🏆 ${w.name}`:"Sem resultado"}
+            </span>
+          </div>
+        `;
+      }).join("");
     });
   </script>
 </body>

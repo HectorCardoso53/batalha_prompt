@@ -7,15 +7,57 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
   <style>
-    .tela { flex:1; background:var(--azul-escuro); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 24px; gap:16px; overflow:hidden; min-height:0; }
-    .tela h1 { color:#fff; font-weight:700; font-size:clamp(16px,2vw,28px); text-align:center; flex-shrink:0; }
-    .img-wrap { border-radius:16px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.4); flex:1 1 0; min-height:0; min-width:0; width:100%; cursor:zoom-in; }
-    .img-wrap img { width:100%; height:100%; object-fit:contain; display:block; }
-    #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; cursor:zoom-out; }
+    body { background: var(--azul-escuro); }
+    main { flex:1; display:flex; flex-direction:column; background:var(--azul-escuro); padding-top:64px; }
+
+    .tela { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow:auto; }
+
+    /* ── Tela aguardando ── */
+    #tela-aguardando { text-align:center; color:#fff; }
+
+    /* ── Tela batalha ── */
+    #tela-batalha { width:100%; max-width:1100px; margin:0 auto; gap:20px; }
+
+    .batalha-header { text-align:center; }
+    .rodada-label  { color:var(--ambar); font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; }
+    .rodada-titulo { color:#fff; font-size:clamp(16px,2.5vw,28px); font-weight:700; margin-top:4px; }
+
+    /* ── Timer ── */
+    #timer-central { text-align:center; padding:10px 0; }
+    #timer-num { font-size:52px; font-weight:900; font-variant-numeric:tabular-nums; color:#fff; transition:color .3s; }
+    #timer-num.amarelo { color:#FFC107; }
+    #timer-num.vermelho { color:#EF4444; }
+
+    /* ── Player cards ── */
+    .battle-grid { display:grid; grid-template-columns:1fr 48px 1fr; gap:16px; align-items:start; width:100%; }
+    .vs-sep { display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; color:var(--ambar); padding-top:40px; }
+
+    .p-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:20px; }
+    .p-card.vencedor { border-color:var(--ambar); background:rgba(255,210,31,.12); }
+    .p-card-label { font-size:11px; font-weight:700; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
+    .p-card-nome  { color:#fff; font-weight:700; font-size:18px; margin-bottom:8px; }
+    .p-card-status { font-size:13px; color:rgba(255,255,255,.5); }
+    .p-card-status.done { color:#34D399; }
+    .p-card-img { width:100%; border-radius:10px; object-fit:contain; display:block; margin:12px 0; max-height:280px; }
+    .p-card-score { font-size:38px; font-weight:900; margin:4px 0; }
+    .p-card-prompt { font-size:12px; color:rgba(255,255,255,.55); line-height:1.5; font-style:italic; margin-top:8px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .vencedor-badge { display:inline-block; background:var(--ambar); color:var(--azul-escuro); font-size:11px; font-weight:900; padding:3px 12px; border-radius:99px; margin-bottom:8px; }
+
+    .slot-vazio { text-align:center; padding:40px 20px; color:rgba(255,255,255,.25); }
+    .slot-vazio i { font-size:32px; display:block; margin-bottom:8px; }
+
+    /* ── Reveal do prompt ── */
+    #prompt-reveal { background:rgba(255,255,255,.05); border-radius:12px; padding:16px 20px; border-left:3px solid var(--ambar); width:100%; }
+    #prompt-reveal-label { font-size:11px; font-weight:700; color:var(--ambar); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px; }
+    #prompt-reveal-txt { font-size:14px; color:rgba(255,255,255,.8); line-height:1.6; }
+
+    /* ── Imagem master (estado ativo) ── */
+    #master-wrap { border-radius:12px; overflow:hidden; border:2px solid var(--ambar); width:100%; max-height:300px; cursor:zoom-in; }
+    #master-wrap img { width:100%; height:100%; object-fit:contain; display:block; max-height:300px; }
+
+    #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.92); align-items:center; justify-content:center; cursor:zoom-out; }
     #lightbox.open { display:flex; }
     #lightbox img { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; }
-    #lightbox-close { position:absolute; top:16px; right:20px; font-size:32px; color:#fff; cursor:pointer; opacity:0.7; }
-    #lightbox-close:hover { opacity:1; }
   </style>
 </head>
 <body>
@@ -26,22 +68,60 @@
     </a>
   </header>
 
-  <main style="background:var(--azul-escuro);display:flex;flex-direction:column;">
+  <main>
+    <!-- Aguardando -->
     <div id="tela-aguardando" class="tela">
-      <div style="text-align:center;color:#fff;">
-        <i class="bi bi-hourglass" style="font-size:52px;color:var(--ambar);display:block;margin-bottom:16px;"></i>
-        <h2 style="font-weight:700;font-size:22px;margin-bottom:8px;">Aguardando rodada...</h2>
-        <p style="color:rgba(255,255,255,0.45);font-size:15px;">O admin ainda não ativou nenhum desafio.</p>
-      </div>
+      <i class="bi bi-hourglass" style="font-size:52px;color:var(--ambar);display:block;margin-bottom:16px;"></i>
+      <h2 style="font-weight:700;font-size:22px;margin-bottom:8px;color:#fff;">Aguardando rodada...</h2>
+      <p style="color:rgba(255,255,255,.45);font-size:15px;">O admin ainda não iniciou nenhuma rodada.</p>
     </div>
-    <div id="tela-desafio" class="tela" style="display:none;">
-      <h1 id="desafio-titulo"></h1>
-      <div class="img-wrap"><img id="desafio-img" src="" alt="Imagem da rodada" /></div>
+
+    <!-- Batalha -->
+    <div id="tela-batalha" class="tela" style="display:none;">
+
+      <!-- Cabeçalho -->
+      <div class="batalha-header" style="width:100%;max-width:1100px;">
+        <p id="rodada-label" class="rodada-label"></p>
+        <h1 id="rodada-titulo" class="rodada-titulo"></h1>
+      </div>
+
+      <!-- Timer -->
+      <div id="timer-central" style="display:none;">
+        <span id="timer-num">--:--</span>
+      </div>
+
+      <!-- Estado: aguardando / ativo -->
+      <div id="estado-jogo" style="display:none;width:100%;max-width:1100px;">
+        <!-- Imagem master (visível durante a rodada) -->
+        <div id="master-wrap" style="margin-bottom:20px;display:none;" onclick="abrirLightbox()">
+          <img id="master-img" src="" alt="Imagem Master" />
+        </div>
+        <!-- Cards dos jogadores -->
+        <div class="battle-grid">
+          <div id="card-p1" class="p-card"></div>
+          <div class="vs-sep">VS</div>
+          <div id="card-p2" class="p-card"></div>
+        </div>
+      </div>
+
+      <!-- Estado: resultado -->
+      <div id="estado-resultado" style="display:none;width:100%;max-width:1100px;">
+        <div class="battle-grid" style="margin-bottom:20px;">
+          <div id="res-p1" class="p-card"></div>
+          <div class="vs-sep">VS</div>
+          <div id="res-p2" class="p-card"></div>
+        </div>
+        <!-- Prompt reveal -->
+        <div id="prompt-reveal">
+          <p id="prompt-reveal-label" class="prompt-reveal-label">Prompt Original</p>
+          <p id="prompt-reveal-txt" class="prompt-reveal-txt"></p>
+        </div>
+      </div>
+
     </div>
   </main>
 
   <div id="lightbox" onclick="fecharLightbox()">
-    <span id="lightbox-close" onclick="fecharLightbox()">✕</span>
     <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
   </div>
 
@@ -53,38 +133,124 @@
     <div class="footer-dir">
       <p>SEMEG</p>
       <p>Secretaria Municipal de Eficiência Governamental</p>
-      <a href="admin/index.html" style="font-size:11px;color:rgba(255,255,255,0.25);text-decoration:none;margin-top:4px;display:inline-block;">Admin</a>
+      <a href="admin/index.html" style="font-size:11px;color:rgba(255,255,255,.25);text-decoration:none;margin-top:4px;display:inline-block;">Admin</a>
     </div>
   </footer>
 
-  <script>
-    function fecharLightbox() { document.getElementById("lightbox").classList.remove("open"); }
-    document.addEventListener("keydown", e => { if (e.key === "Escape") fecharLightbox(); });
-  </script>
   <script src="js/header.js"></script>
   <script type="module">
     import { db } from "./js/app.js";
     import { ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
-    onValue(ref(db, "challenge"), snap => {
-      const ch = snap.val();
-      if (ch && ch.isActive && ch.masterImage) {
-        document.getElementById("desafio-titulo").textContent    = ch.title;
-        document.getElementById("desafio-img").src               = ch.masterImage;
-        document.getElementById("tela-desafio").style.display    = "flex";
-        document.getElementById("tela-aguardando").style.display = "none";
-      } else {
-        document.getElementById("tela-desafio").style.display    = "none";
+    let timerInterval = null;
+    let CHALLENGE = null;
+
+    function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+    function scoreColor(s) { return s>=70?"#34D399":s>=40?"#FCD34D":"#F87171"; }
+
+    onValue(ref(db, "challenge"), snap => { CHALLENGE = snap.val(); });
+
+    function renderSlot(el, player, slot) {
+      if (!player) {
+        el.innerHTML = `<div class="slot-vazio"><i class="bi bi-person-circle"></i><p>Aguardando Jogador ${slot === "player1" ? "1" : "2"}...</p></div>`;
+        return;
+      }
+      el.innerHTML = `
+        <p class="p-card-label">Jogador ${slot === "player1" ? "1" : "2"}</p>
+        <p class="p-card-nome">${esc(player.name)}</p>
+        <p class="p-card-status${player.done ? " done" : ""}">${player.done ? "✓ Enviou" : "⏳ Jogando..."}</p>
+      `;
+    }
+
+    function renderResultado(el, player, slot, winner) {
+      if (!player) {
+        el.innerHTML = `<div class="slot-vazio"><i class="bi bi-dash-circle"></i><p>Não participou</p></div>`;
+        return;
+      }
+      const isWin = winner === slot;
+      if (isWin) el.classList.add("vencedor"); else el.classList.remove("vencedor");
+
+      const score = player.score ?? 0;
+      el.innerHTML = `
+        ${isWin ? '<span class="vencedor-badge">🏆 VENCEDOR</span>' : ""}
+        <p class="p-card-label">Jogador ${slot === "player1" ? "1" : "2"}</p>
+        <p class="p-card-nome">${esc(player.name)}</p>
+        ${player.generatedImage ? `<img src="${esc(player.generatedImage)}" class="p-card-img" />` : ""}
+        <p class="p-card-score" style="color:${scoreColor(score)}">${Math.round(score)}<span style="font-size:18px;color:rgba(255,255,255,.4)">/100</span></p>
+        ${player.prompt ? `<p class="p-card-prompt">"${esc(player.prompt)}"</p>` : ""}
+      `;
+    }
+
+    onValue(ref(db, "currentRound"), snap => {
+      const round = snap.val();
+
+      if (!round) {
         document.getElementById("tela-aguardando").style.display = "flex";
+        document.getElementById("tela-batalha").style.display = "none";
+        if (timerInterval) clearInterval(timerInterval);
+        return;
+      }
+
+      document.getElementById("tela-aguardando").style.display = "none";
+      document.getElementById("tela-batalha").style.display = "flex";
+      document.getElementById("rodada-label").textContent = `Rodada ${round.number}`;
+      document.getElementById("rodada-titulo").textContent = CHALLENGE?.title || "";
+
+      const isDone = round.status === "done";
+      document.getElementById("estado-jogo").style.display = isDone ? "none" : "block";
+      document.getElementById("estado-resultado").style.display = isDone ? "block" : "none";
+
+      if (isDone) {
+        // Reveal dos resultados
+        renderResultado(document.getElementById("res-p1"), round.player1, "player1", round.winner);
+        renderResultado(document.getElementById("res-p2"), round.player2, "player2", round.winner);
+        document.getElementById("prompt-reveal-txt").textContent = CHALLENGE?.masterPrompt || "";
+        if (timerInterval) clearInterval(timerInterval);
+        document.getElementById("timer-central").style.display = "none";
+      } else {
+        // Jogo em andamento
+        const masterImg = document.getElementById("master-wrap");
+        if (CHALLENGE?.masterImage && round.status === "active") {
+          document.getElementById("master-img").src = CHALLENGE.masterImage;
+          masterImg.style.display = "block";
+        } else {
+          masterImg.style.display = "none";
+        }
+
+        renderSlot(document.getElementById("card-p1"), round.player1, "player1");
+        renderSlot(document.getElementById("card-p2"), round.player2, "player2");
+
+        // Timer
+        if (round.status === "active" && round.startedAt && CHALLENGE?.timeLimit) {
+          document.getElementById("timer-central").style.display = "block";
+          if (timerInterval) clearInterval(timerInterval);
+          const end = round.startedAt + CHALLENGE.timeLimit * 1000;
+          function tick() {
+            const rem = Math.max(0, end - Date.now());
+            const m = Math.floor(rem / 60000);
+            const s = Math.floor((rem % 60000) / 1000);
+            const el = document.getElementById("timer-num");
+            el.textContent = `${m}:${s.toString().padStart(2,"0")}`;
+            el.className = rem < 30000 ? "vermelho" : rem < 60000 ? "amarelo" : "";
+            if (rem <= 0) clearInterval(timerInterval);
+          }
+          tick();
+          timerInterval = setInterval(tick, 500);
+        } else {
+          document.getElementById("timer-central").style.display = "none";
+          if (timerInterval) clearInterval(timerInterval);
+        }
       }
     });
 
-    document.querySelector(".img-wrap").addEventListener("click", () => {
-      const src = document.getElementById("desafio-img").src;
+    window.abrirLightbox = function() {
+      const src = document.getElementById("master-img").src;
       if (!src) return;
       document.getElementById("lightbox-img").src = src;
       document.getElementById("lightbox").classList.add("open");
-    });
+    };
+    window.fecharLightbox = function() { document.getElementById("lightbox").classList.remove("open"); };
+    document.addEventListener("keydown", e => { if (e.key === "Escape") fecharLightbox(); });
   </script>
 </body>
 </html>
