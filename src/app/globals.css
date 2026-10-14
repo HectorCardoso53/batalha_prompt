@@ -1,26 +1,132 @@
 @import "tailwindcss";
 
+/* Força dark mode apenas via classe .dark — nunca por media query */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --azul-escuro:     #001428;
+  --azul-marinho:    #001B3D;
+  --amarelo:         #FFD21F;
+  --ambar:           #FFC107;
+  --amarelo-hover:   #FFE066;
+
+  --fundo:           #F4F6F8;
+  --fundo-secao:     #E9EDF2;
+  --fundo-off-white: #FAF9F5;
+  --branco:          #FFFFFF;
+
+  --texto:           #333333;
+  --texto-destaque:  #000000;
+  --texto-sec:       #999999;
+  --texto-claro:     #FFFFFF;
+
+  --azul-royal:      #1E4FA3;
+  --azul-ceu:        #4DB6E6;
+
+  --radius:          10px;
+  --shadow:          0 4px 12px rgba(0,0,0,0.10);
+  --transition:      0.2s ease;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--fundo);
+  --color-foreground: var(--texto);
+  --font-sans: Arial, Helvetica, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; color-scheme: light; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  background-color: #F4F6F8 !important;
+  color: #333333 !important;
+  line-height: 1.6;
 }
+
+/* Garante que nenhuma classe Tailwind sobreponha os fundos das seções */
+section, main, div, footer, header {
+  color-scheme: light;
+}
+
+/* foco visível — acessibilidade */
+:focus-visible {
+  outline: 3px solid var(--ambar);
+  outline-offset: 3px;
+}
+
+/* ── Botões globais ─────────────────────────────────── */
+.btn {
+  display: inline-block;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px 32px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+}
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FFD21F, #FFE066);
+  color: var(--azul-escuro);
+}
+.btn-primary:hover { background: linear-gradient(135deg, #FFD21F, #FFEA70); }
+
+.btn-secondary {
+  background: var(--azul-escuro);
+  color: var(--texto-claro);
+}
+.btn-secondary:hover { background: var(--azul-marinho); }
+
+/* ── Título de seção + traço âmbar ─────────────────── */
+.secao-titulo {
+  font-size: clamp(20px, 3vw, 28px);
+  font-weight: 700;
+  color: var(--azul-marinho);
+  text-align: center;
+  margin-bottom: 12px;
+}
+.secao-traco {
+  width: 60px;
+  height: 4px;
+  background: var(--ambar);
+  border-radius: 2px;
+  margin: 0 auto 32px;
+}
+
+/* ── Cards ──────────────────────────────────────────── */
+.card {
+  background: var(--branco);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+/* ── Inputs ─────────────────────────────────────────── */
+.input {
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  color: var(--texto-destaque);
+  background: var(--branco);
+  border: 1.5px solid #CBD5E0;
+  border-radius: 8px;
+  padding: 11px 14px;
+  transition: border-color var(--transition);
+}
+.input::placeholder { color: var(--texto-sec); }
+.input:focus { outline: none; border-color: var(--amarelo); }
+
+/* ── Badge de status ────────────────────────────────── */
+.badge-ativo   { background: #D1FAE5; color: #065F46; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 99px; }
+.badge-inativo { background: #E9EDF2; color: #6B7280; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 99px; }
