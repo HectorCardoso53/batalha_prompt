@@ -110,11 +110,13 @@
     }
     atualizarKeyStatus();
 
-    document.getElementById("btn-key").addEventListener("click", () => {
+    document.getElementById("btn-key").addEventListener("click", async () => {
       const nova = prompt("Cole aqui sua chave da OpenAI (sk-...):", localStorage.getItem("openaiKey") || "");
       if (nova === null) return;
       if (nova.startsWith("sk-")) {
-        localStorage.setItem("openaiKey", nova.trim());
+        const trimmed = nova.trim();
+        localStorage.setItem("openaiKey", trimmed);
+        await set(ref(db, "openaiKey"), trimmed);
         atualizarKeyStatus();
       } else {
         alert("Chave inválida. Deve começar com sk-");

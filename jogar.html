@@ -119,8 +119,8 @@
 
   <script src="js/header.js"></script>
   <script type="module">
-    import { db, OPENAI_KEY } from "./js/app.js";
-    import { ref, onValue, push } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+    import { db } from "./js/app.js";
+    import { ref, onValue, push, get } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
     let DESAFIO = null;
     let timerInterval = null;
@@ -194,8 +194,11 @@
       const loading = document.getElementById("msg-loading");
       const prompt  = document.getElementById("inp-prompt").value;
 
+      const keySnap = await get(ref(db, "openaiKey"));
+      const OPENAI_KEY = keySnap.val() || localStorage.getItem("openaiKey") || "";
+
       if (!OPENAI_KEY) {
-        erro.textContent = "Chave OpenAI não configurada. Acesse o Painel Admin.";
+        erro.textContent = "Chave OpenAI não configurada. Avise o admin.";
         erro.style.display = "block"; return;
       }
 
