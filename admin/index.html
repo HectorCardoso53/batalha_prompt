@@ -73,14 +73,6 @@
               </div>
             </div>
 
-            <!-- Link para jogadores -->
-            <div style="background:var(--fundo);border-radius:8px;padding:14px 16px;">
-              <p style="font-size:12px;font-weight:700;color:var(--azul-marinho);margin-bottom:8px;">🔗 Link para jogadores — compartilhe este link:</p>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <input id="link-jogador" type="text" readonly class="input" style="font-size:12px;background:#fff;flex:1;" />
-                <button id="btn-copiar" class="btn btn-secondary btn-sm" style="white-space:nowrap;">Copiar</button>
-              </div>
-            </div>
           </div>
 
           <!-- Últimas submissões (tempo real) -->
@@ -127,16 +119,6 @@
       } else {
         alert("Chave inválida. Deve começar com sk-");
       }
-    });
-
-    // ── Link de jogador ──────────────────────────────────────
-    const linkJogador = location.origin + "/jogar.html";
-    document.getElementById("link-jogador").value = linkJogador;
-    document.getElementById("btn-copiar").addEventListener("click", () => {
-      navigator.clipboard.writeText(linkJogador).then(() => {
-        document.getElementById("btn-copiar").textContent = "✓ Copiado!";
-        setTimeout(() => document.getElementById("btn-copiar").textContent = "Copiar", 2000);
-      });
     });
 
     // ── Score helpers ────────────────────────────────────────
