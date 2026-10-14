@@ -192,7 +192,16 @@
       const btn     = document.getElementById("btn-prompt");
       const erro    = document.getElementById("erro-prompt");
       const loading = document.getElementById("msg-loading");
-      const prompt  = document.getElementById("inp-prompt").value;
+      const prompt  = document.getElementById("inp-prompt").value.trim();
+
+      if (!prompt) {
+        erro.textContent = "Escreva seu prompt antes de enviar.";
+        erro.style.display = "block"; return;
+      }
+      if (prompt.length > 3900) {
+        erro.textContent = "Prompt muito longo. Reduza para menos de 3900 caracteres.";
+        erro.style.display = "block"; return;
+      }
 
       const keySnap = await get(ref(db, "openaiKey"));
       const OPENAI_KEY = keySnap.val() || localStorage.getItem("openaiKey") || "";
@@ -213,7 +222,7 @@
           body: JSON.stringify({ model: "dall-e-3", prompt, n: 1, size: "1024x1024" }),
         });
         const imgData = await imgRes.json();
-        if (!imgRes.ok) throw new Error(imgData.error?.message || "Erro ao gerar imagem.");
+        if (!imgRes.ok) throw new Error("DALL-E: " + (imgData.error?.message || JSON.stringify(imgData)));
         const generatedImage = imgData.data[0].url;
 
         // 2. GPT-4o Vision
