@@ -331,11 +331,12 @@
       }
 
       const keySnap = await get(ref(db, "openaiKey"));
-      const OPENAI_KEY = keySnap.val() || localStorage.getItem("openaiKey") || "";
+      const OPENAI_KEY = (keySnap.val() || localStorage.getItem("openaiKey") || "").trim();
       if (!OPENAI_KEY) {
         erro.textContent = "Chave OpenAI não configurada. Avise o admin.";
         erro.style.display = "block"; return;
       }
+      console.log("KEY prefix:", OPENAI_KEY.slice(0, 8), "| len:", OPENAI_KEY.length);
 
       btn.disabled = true; btn.textContent = "Gerando imagem...";
       loading.style.display = "block"; erro.style.display = "none";
@@ -348,7 +349,10 @@
           body: JSON.stringify({ model: "dall-e-2", prompt, n: 1, size: "512x512" }),
         });
         const imgData = await imgRes.json();
-        if (!imgRes.ok) throw new Error("DALL-E: " + (imgData.error?.message || JSON.stringify(imgData)));
+        if (!imgRes.ok) {
+          console.error("DALL-E error response:", JSON.stringify(imgData));
+          throw new Error("DALL-E " + imgRes.status + ": " + (imgData.error?.message || imgData.error?.code || JSON.stringify(imgData)));
+        }
         const generatedImage = imgData.data[0].url;
 
         // 2. GPT-4o Vision — score
