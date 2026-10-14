@@ -41,11 +41,12 @@
 
             <div>
               <label class="label">Imagem Master</label>
-              <p style="font-size:13px;color:var(--texto-sec);margin-bottom:12px;">Cole a URL da imagem que os jogadores vão tentar recriar.</p>
-              <input id="inp-img" type="url" class="input" required placeholder="https://exemplo.com/imagem.jpg" />
-              <button type="button" id="btn-preview" class="btn btn-secondary btn-sm" style="margin-top:8px;">
-                <i class="bi bi-eye"></i> Visualizar
-              </button>
+              <p style="font-size:13px;color:var(--texto-sec);margin-bottom:12px;">Faça upload da imagem que os jogadores vão tentar recriar.</p>
+              <label id="upload-area" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:2px dashed #CBD5E0;border-radius:10px;padding:32px 16px;cursor:pointer;background:var(--fundo);transition:border-color 0.2s;">
+                <i class="bi bi-image" style="font-size:36px;color:var(--texto-sec);"></i>
+                <span id="upload-label" style="font-size:14px;color:var(--texto-sec);text-align:center;">Clique para escolher ou arraste a imagem aqui</span>
+                <input id="inp-img" type="file" accept="image/*" required style="display:none;" />
+              </label>
               <div id="preview-wrap" style="display:none;margin-top:14px;border-radius:8px;overflow:hidden;border:2px solid var(--ambar);">
                 <img id="img-preview" src="" alt="Preview" style="width:100%;object-fit:contain;max-height:260px;display:block;" />
               </div>
@@ -87,24 +88,69 @@
     import { db } from "../js/app.js";
     import { ref, set, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
-    document.getElementById("btn-preview").addEventListener("click", () => {
-      const url = document.getElementById("inp-img").value.trim();
-      if (!url) return;
-      document.getElementById("img-preview").src = url;
+    let masterImageData = null;
+
+    function comprimirImagem(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const img = new Image();
+          img.onload = () => {
+            const MAX = 900;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+              if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+              else       { w = Math.round(w * MAX / h); h = MAX; }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", 0.82));
+          };
+          img.onerror = reject;
+          img.src = ev.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const inputImg   = document.getElementById("inp-img");
+    const uploadArea = document.getElementById("upload-area");
+
+    inputImg.addEventListener("change", async () => {
+      const file = inputImg.files[0];
+      if (!file) return;
+      document.getElementById("upload-label").textContent = "Comprimindo...";
+      masterImageData = await comprimirImagem(file);
+      document.getElementById("img-preview").src          = masterImageData;
       document.getElementById("preview-wrap").style.display = "block";
+      document.getElementById("upload-label").textContent = file.name;
+      uploadArea.style.borderColor = "var(--ambar)";
+    });
+
+    // Drag & drop
+    uploadArea.addEventListener("dragover", e => { e.preventDefault(); uploadArea.style.borderColor = "var(--ambar)"; });
+    uploadArea.addEventListener("dragleave", () => uploadArea.style.borderColor = "#CBD5E0");
+    uploadArea.addEventListener("drop", e => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        inputImg.files = e.dataTransfer.files;
+        inputImg.dispatchEvent(new Event("change"));
+      }
     });
 
     document.getElementById("form-novo").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const btn         = document.getElementById("btn-criar");
-      const erro        = document.getElementById("erro");
-      const title       = document.getElementById("inp-title").value.trim();
-      const masterImage = document.getElementById("inp-img").value.trim();
-      const masterPrompt= document.getElementById("inp-mprompt").value.trim();
-      const timeLimit   = parseInt(document.getElementById("inp-time").value) * 60;
+      const btn          = document.getElementById("btn-criar");
+      const erro         = document.getElementById("erro");
+      const title        = document.getElementById("inp-title").value.trim();
+      const masterPrompt = document.getElementById("inp-mprompt").value.trim();
+      const timeLimit    = parseInt(document.getElementById("inp-time").value) * 60;
 
-      if (!masterImage.startsWith("http")) {
-        erro.textContent = "Cole uma URL de imagem válida (começa com http).";
+      if (!masterImageData) {
+        erro.textContent = "Selecione uma imagem.";
         erro.style.display = "block"; return;
       }
       erro.style.display = "none";
@@ -112,7 +158,7 @@
 
       try {
         await set(ref(db, "challenge"), {
-          title, masterImage, masterPrompt,
+          title, masterImage: masterImageData, masterPrompt,
           timeLimit, isActive: false, startedAt: null,
         });
         await remove(ref(db, "submissions"));
