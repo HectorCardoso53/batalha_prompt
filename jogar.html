@@ -90,7 +90,7 @@
               <p id="char-count" style="font-size:12px;color:var(--texto-sec);text-align:right;margin-top:4px;">0 / 1000</p>
               <p id="erro-prompt" style="color:#DC2626;font-size:13px;display:none;"></p>
               <button type="submit" id="btn-prompt" class="btn btn-primary" style="width:100%;">Enviar Prompt</button>
-              <p id="msg-loading" style="font-size:12px;color:var(--texto-sec);text-align:center;display:none;">Gerando imagem com IA... isso pode levar até 30s.</p>
+              <p id="msg-loading" style="font-size:12px;color:var(--texto-sec);text-align:center;display:none;">Gerando imagem com IA... pode levar até 60s.</p>
             </form>
           </div>
         </div>
@@ -342,18 +342,16 @@
       loading.style.display = "block"; erro.style.display = "none";
 
       try {
-        // 1. DALL-E 2
-        const imgRes  = await fetch("https://api.openai.com/v1/images/generations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${OPENAI_KEY}` },
-          body: JSON.stringify({ prompt, n: 1, size: "512x512" }),
+        // 1. Pollinations.ai — gratuito, sem chave
+        const seed = Math.floor(Math.random() * 999999);
+        const generatedImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=512&nologo=true&seed=${seed}`;
+
+        await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = () => reject(new Error("Falha ao gerar imagem. Verifique sua conexão e tente novamente."));
+          img.src = generatedImage;
         });
-        const imgData = await imgRes.json();
-        if (!imgRes.ok) {
-          console.error("DALL-E error response:", JSON.stringify(imgData));
-          throw new Error("DALL-E " + imgRes.status + ": " + (imgData.error?.message || imgData.error?.code || JSON.stringify(imgData)));
-        }
-        const generatedImage = imgData.data[0].url;
 
         // 2. GPT-4o Vision — score
         btn.textContent = "Calculando score...";
