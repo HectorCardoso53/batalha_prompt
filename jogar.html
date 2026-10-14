@@ -90,7 +90,7 @@
               <p id="char-count" style="font-size:12px;color:var(--texto-sec);text-align:right;margin-top:4px;">0 / 1000</p>
               <p id="erro-prompt" style="color:#DC2626;font-size:13px;display:none;"></p>
               <button type="submit" id="btn-prompt" class="btn btn-primary" style="width:100%;">Enviar Prompt</button>
-              <p id="msg-loading" style="font-size:12px;color:var(--texto-sec);text-align:center;display:none;">Gerando imagem com IA... pode levar até 60s.</p>
+              <p id="msg-loading" style="font-size:12px;color:var(--texto-sec);text-align:center;display:none;">Comparando seu prompt com a IA... aguarde.</p>
             </form>
           </div>
         </div>
@@ -116,9 +116,9 @@
         </div>
 
         <!-- Suas imagens -->
-        <div class="grid-auto" style="margin-bottom:24px;">
-          <div class="card"><p class="label-upper">Imagem Master</p><img id="res-master" src="" alt="Master" class="img-ambar" /></div>
-          <div class="card"><p class="label-upper">Sua Geração</p><img id="res-gerada" src="" alt="Gerada" class="img-azul" /></div>
+        <div class="card" style="margin-bottom:24px;">
+          <p class="label-upper">Imagem Master</p>
+          <img id="res-master" src="" alt="Master" class="img-ambar" />
         </div>
 
         <!-- Seu prompt -->
@@ -338,34 +338,19 @@
       }
       console.log("KEY prefix:", OPENAI_KEY.slice(0, 8), "| len:", OPENAI_KEY.length);
 
-      btn.disabled = true; btn.textContent = "Gerando imagem...";
+      btn.disabled = true; btn.textContent = "Calculando score...";
       loading.style.display = "block"; erro.style.display = "none";
 
       try {
-        // 1. Pollinations.ai — gratuito, sem chave
-        const seed = Math.floor(Math.random() * 999999);
-        const promptCurto = prompt.slice(0, 300);
-        const generatedImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptCurto)}?width=512&height=512&seed=${seed}&model=flux`;
-
-        await new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = () => reject(new Error("Falha ao gerar imagem. Verifique sua conexão e tente novamente."));
-          img.src = generatedImage;
-        });
-
-        // 2. GPT-4o Vision — score
-        btn.textContent = "Calculando score...";
-        const sRes  = await fetch("https://api.openai.com/v1/chat/completions", {
+        // 1. GPT — compara prompts por texto
+        const sRes = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${OPENAI_KEY}` },
           body: JSON.stringify({
-            model: "gpt-4o", max_tokens: 10,
-            messages: [{ role: "user", content: [
-              { type: "text", text: "Compare these two images and return ONLY a number from 0 to 100 representing visual similarity. Return only the number." },
-              { type: "image_url", image_url: { url: CHALLENGE.masterImage, detail: "low" } },
-              { type: "image_url", image_url: { url: generatedImage, detail: "low" } },
-            ]}],
+            model: "gpt-4o-mini", max_tokens: 10,
+            messages: [{ role: "user", content:
+              `Compare these two image prompts and return ONLY a number from 0 to 100 representing how similar they are in visual elements, style, colors, composition, and subjects. Return only the number, nothing else.\n\nMASTER PROMPT: ${CHALLENGE.masterPrompt}\n\nPLAYER PROMPT: ${prompt}`
+            }],
           }),
         });
         const sData = await sRes.json();
@@ -373,15 +358,15 @@
         const score = Math.min(100, Math.max(0, parseFloat(sData.choices[0].message.content.trim()) || 0));
         const scoreFinal = Math.round(score);
 
-        // 3. Salva no slot do Firebase
+        // 2. Salva no slot do Firebase
         await update(ref(db, `currentRound/${mySlot}`), {
-          prompt, generatedImage, score: scoreFinal, done: true,
+          prompt, generatedImage: null, score: scoreFinal, done: true,
         });
 
-        // 4. Salva também em /submissions para o leaderboard
+        // 3. Salva em /submissions para o leaderboard
         const { push } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js");
         await push(ref(db, "submissions"), {
-          name: nomeJogador, prompt, generatedImage, score: scoreFinal, ts: Date.now(),
+          name: nomeJogador, prompt, score: scoreFinal, ts: Date.now(),
         });
 
         // 5. Verifica se é o segundo a submeter → define vencedor
@@ -401,16 +386,15 @@
         num.textContent = scoreFinal;
         if (score >= 70) {
           num.style.color="#065F46"; msg.style.background="#D1FAE5"; msg.style.color="#065F46";
-          msg.textContent="🎉 Excelente! Sua imagem ficou muito parecida com a original.";
+          msg.textContent="🎉 Excelente! Seu prompt está muito próximo do original!";
         } else if (score >= 40) {
           num.style.color="#92400E"; msg.style.background="#FEF3C7"; msg.style.color="#92400E";
           msg.textContent="👍 Bom trabalho! Você capturou parte da essência da imagem.";
         } else {
           num.style.color="#991B1B"; msg.style.background="#FEE2E2"; msg.style.color="#991B1B";
-          msg.textContent="💪 Continue tentando! Detalhe mais a composição e os elementos.";
+          msg.textContent="💪 Continue tentando! Detalhe mais os elementos visuais.";
         }
         document.getElementById("res-master").src         = CHALLENGE.masterImage;
-        document.getElementById("res-gerada").src         = generatedImage;
         document.getElementById("res-prompt").textContent = prompt;
         document.getElementById("res-master-prompt").textContent = CHALLENGE.masterPrompt || "";
 
