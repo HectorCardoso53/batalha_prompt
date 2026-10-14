@@ -344,7 +344,8 @@
       try {
         // 1. Pollinations.ai — gratuito, sem chave
         const seed = Math.floor(Math.random() * 999999);
-        const generatedImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=512&nologo=true&seed=${seed}`;
+        const promptCurto = prompt.slice(0, 300);
+        const generatedImage = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptCurto)}?width=512&height=512&seed=${seed}&model=flux`;
 
         await new Promise((resolve, reject) => {
           const img = new Image();
