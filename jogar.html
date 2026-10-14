@@ -116,7 +116,19 @@
 
   <script src="js/header.js"></script>
   <script type="module">
-    import { DESAFIO, OPENAI_KEY } from "./js/app.js";
+    import { DESAFIO as DESAFIO_DEFAULT, OPENAI_KEY } from "./js/app.js";
+
+    // Lê config da URL (?d=BASE64) — permite compartilhar entre dispositivos
+    function lerConfigURL() {
+      try {
+        const params = new URLSearchParams(location.search);
+        const d = params.get("d");
+        if (d) return JSON.parse(decodeURIComponent(escape(atob(d))));
+      } catch {}
+      return null;
+    }
+
+    const DESAFIO = lerConfigURL() || DESAFIO_DEFAULT;
 
     if (!DESAFIO.isActive) {
       document.getElementById("aviso").style.display    = "block";
