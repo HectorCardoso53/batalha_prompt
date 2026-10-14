@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Novo Desafio — Batalha de Prompt</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+</head>
+<body>
+  <header class="header">
+    <a href="../index.html" class="header-brand">
+      <img src="../prefeitura_oriximina.png" alt="Prefeitura de Oriximiná" class="header-logo" />
+      <span class="header-title">Batalha de Prompt</span>
+    </a>
+    <nav>
+      <div class="dropdown" id="dd">
+        <button class="btn-admin" id="ddBtn">Admin <span class="arrow">▾</span></button>
+        <div class="dropdown-menu" id="ddMenu">
+          <a href="index.html">Painel Admin</a>
+          <a href="novo-desafio.html">+ Novo Desafio</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page">
+      <div class="page-inner-md">
+        <div style="margin-bottom:32px;">
+          <a href="index.html" class="back-link">← Voltar ao Admin</a>
+          <h1 class="secao-titulo" style="text-align:left;margin-top:12px;">Novo Desafio</h1>
+          <div class="secao-traco" style="margin:8px 0 0;"></div>
+        </div>
+        <div class="card">
+          <form id="form-novo" style="display:flex;flex-direction:column;gap:22px;">
+            <div>
+              <label class="label" for="inp-title">Título do Desafio</label>
+              <input id="inp-title" type="text" class="input" required placeholder="Ex: Desafio #1 — Paisagem ao pôr do sol" />
+            </div>
+
+            <div>
+              <label class="label">Imagem Master</label>
+              <p style="font-size:13px;color:var(--texto-sec);margin-bottom:12px;">Esta é a imagem que os jogadores vão tentar recriar com prompts.</p>
+
+              <label id="drop-area" for="inp-file"
+                style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+                       border:2px dashed var(--fundo-secao);border-radius:8px;padding:32px 16px;cursor:pointer;
+                       text-align:center;transition:border-color 0.2s;">
+                <i class="bi bi-cloud-arrow-up" style="font-size:40px;color:var(--azul-marinho);"></i>
+                <span style="font-weight:700;color:var(--azul-marinho);">Clique para escolher ou arraste aqui</span>
+                <span style="font-size:12px;color:var(--texto-sec);">PNG, JPG, WEBP — máx. 4 MB</span>
+                <input id="inp-file" type="file" accept="image/*" style="display:none;" />
+              </label>
+              <p id="upload-status" style="font-size:12px;color:var(--texto-sec);margin-top:6px;display:none;"></p>
+
+              <div id="preview-wrap" style="display:none;margin-top:14px;border-radius:8px;overflow:hidden;border:2px solid var(--ambar);">
+                <img id="img-preview" src="" alt="Preview" style="width:100%;object-fit:contain;max-height:260px;display:block;" />
+              </div>
+            </div>
+
+            <div>
+              <label class="label" for="inp-mprompt">Prompt Original <span style="color:var(--texto-sec);font-weight:400;">(secreto)</span></label>
+              <textarea id="inp-mprompt" class="input" rows="4" required
+                placeholder="Cole aqui o prompt exato que você usou para gerar a imagem master..."
+                style="resize:none;"></textarea>
+            </div>
+
+            <p id="erro" style="color:#DC2626;font-size:14px;background:#FEE2E2;padding:10px 14px;border-radius:8px;display:none;"></p>
+            <button type="submit" id="btn-criar" class="btn btn-primary" style="width:100%;">Criar Desafio</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-esq">
+      <p>Prefeitura Municipal de Oriximiná</p>
+      <p>A transformação não vai parar</p>
+    </div>
+    <div class="footer-dir">
+      <p>SEMEG</p>
+      <p>Secretaria Municipal de Eficiência Governamental</p>
+    </div>
+  </footer>
+
+  <script src="../js/header.js"></script>
+  <script>
+    let masterImageBase64 = "";
+
+    // ── Comprime imagem via canvas e retorna base64 ────────────
+    function comprimirImagem(file) {
+      return new Promise((resolve, reject) => {
+        if (file.size > 4 * 1024 * 1024) { reject(new Error("Imagem muito grande. Use até 4 MB.")); return; }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const MAX = 1024;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+              if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+              else       { w = Math.round(w * MAX / h); h = MAX; }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+          };
+          img.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+          img.src = ev.target.result;
+        };
+        reader.onerror = () => reject(new Error("Erro ao ler o arquivo."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function mostrarPreview(src) {
+      document.getElementById("img-preview").src = src;
+      document.getElementById("preview-wrap").style.display = "block";
+      masterImageBase64 = src;
+    }
+
+    // ── Upload de arquivo ──────────────────────────────────────
+    const dropArea = document.getElementById("drop-area");
+    const inpFile  = document.getElementById("inp-file");
+    const status   = document.getElementById("upload-status");
+
+    async function processarArquivo(file) {
+      if (!file || !file.type.startsWith("image/")) return;
+      status.textContent = "Processando imagem...";
+      status.style.display = "block";
+      dropArea.style.borderColor = "var(--ambar)";
+      try {
+        const b64 = await comprimirImagem(file);
+        mostrarPreview(b64);
+        status.textContent = "✓ Imagem carregada (" + Math.round(b64.length / 1024) + " KB)";
+        status.style.color = "#065F46";
+      } catch (err) {
+        status.textContent = "✗ " + err.message;
+        status.style.color = "#DC2626";
+        dropArea.style.borderColor = "#DC2626";
+      }
+    }
+
+    inpFile.addEventListener("change", (e) => processarArquivo(e.target.files?.[0]));
+
+    dropArea.addEventListener("dragover",  (e) => { e.preventDefault(); dropArea.style.borderColor = "var(--ambar)"; });
+    dropArea.addEventListener("dragleave", ()  => { dropArea.style.borderColor = "var(--fundo-secao)"; });
+    dropArea.addEventListener("drop",      (e) => { e.preventDefault(); processarArquivo(e.dataTransfer.files?.[0]); });
+
+    // ── Submit ────────────────────────────────────────────────
+    document.getElementById("form-novo").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title        = document.getElementById("inp-title").value.trim();
+      const masterPrompt = document.getElementById("inp-mprompt").value.trim();
+      const erro         = document.getElementById("erro");
+
+      if (!masterImageBase64) {
+        erro.textContent = "Adicione a imagem master (upload ou URL).";
+        erro.style.display = "block"; return;
+      }
+      erro.style.display = "none";
+
+      const desafio = { id: "desafio-" + Date.now(), title, masterImage: masterImageBase64, masterPrompt, isActive: true };
+      localStorage.setItem("desafioConfig", JSON.stringify(desafio));
+      localStorage.removeItem("submissions");
+      location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

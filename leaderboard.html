@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ranking — Batalha de Prompt</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .rank-row { display:flex; align-items:center; gap:16px; padding:14px 0; border-bottom:1px solid var(--fundo-secao); }
+    .rank-row:last-child { border-bottom:none; }
+    .rank-pos { font-size:18px; font-weight:900; color:var(--texto-sec); min-width:32px; text-align:center; }
+    .ouro { color:#D4A017; } .prata { color:#9E9E9E; } .bronze { color:#A0522D; }
+    .rank-img { width:72px; height:72px; object-fit:cover; border-radius:8px; flex-shrink:0; border:2px solid var(--fundo-secao); }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="header-brand">
+      <img src="prefeitura_oriximina.png" alt="Prefeitura de Oriximiná" class="header-logo" />
+      <span class="header-title">Batalha de Prompt</span>
+    </a>
+    <nav>
+      <div class="dropdown" id="dd">
+        <button class="btn-admin" id="ddBtn">Admin <span class="arrow">▾</span></button>
+        <div class="dropdown-menu" id="ddMenu">
+          <a href="admin/index.html">Painel Admin</a>
+          <a href="admin/novo-desafio.html">+ Novo Desafio</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page">
+      <div class="page-inner" style="max-width:700px;">
+        <div style="margin-bottom:32px;">
+          <a href="admin/index.html" class="back-link">← Admin</a>
+          <h1 id="rank-title" class="secao-titulo" style="text-align:left;margin-top:12px;">Ranking</h1>
+          <div class="secao-traco" style="margin:8px 0 0;"></div>
+        </div>
+        <p id="empty" style="text-align:center;color:var(--texto-sec);padding:60px 0;display:none;">Nenhuma submissão ainda.</p>
+        <div id="lista" class="card" style="display:none;"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-esq">
+      <p>Prefeitura Municipal de Oriximiná</p>
+      <p>A transformação não vai parar</p>
+    </div>
+    <div class="footer-dir">
+      <p>SEMEG</p>
+      <p>Secretaria Municipal de Eficiência Governamental</p>
+    </div>
+  </footer>
+
+  <script src="js/header.js"></script>
+  <script type="module">
+    import { DESAFIO } from "./js/app.js";
+
+    function scoreColor(s) { return s>=70?"#065F46":s>=40?"#92400E":"#991B1B"; }
+    function scoreBg(s)    { return s>=70?"#D1FAE5":s>=40?"#FEF3C7":"#FEE2E2"; }
+    function medalha(i)    { return ["ouro","prata","bronze"][i]??""; }
+    function emoji(i)      { return ["🥇","🥈","🥉"][i]??(i+1); }
+
+    document.getElementById("rank-title").textContent = "Ranking — " + DESAFIO.title;
+
+    const subs = JSON.parse(localStorage.getItem("submissions") || "[]");
+    subs.sort((a,b) => (b.score??0) - (a.score??0));
+
+    if (!subs.length) {
+      document.getElementById("empty").style.display = "block";
+    } else {
+      document.getElementById("lista").style.display = "block";
+      document.getElementById("lista").innerHTML = subs.map((sub, i) => `
+        <div class="rank-row">
+          <div class="rank-pos ${medalha(i)}">${emoji(i)}</div>
+          <img src="${sub.generatedImage}" alt="" class="rank-img" />
+          <div style="flex:1;min-width:0;">
+            <p style="font-weight:700;color:var(--azul-marinho);font-size:16px;margin-bottom:2px;">${sub.name}</p>
+            <p style="font-size:12px;color:var(--texto-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub.prompt}</p>
+          </div>
+          <span class="score-badge" style="color:${scoreColor(sub.score??0)};background:${scoreBg(sub.score??0)};font-size:16px;font-weight:900;">
+            ${sub.score!=null?Math.round(sub.score):"—"}/100
+          </span>
+        </div>
+      `).join("");
+    }
+  </script>
+</body>
+</html>

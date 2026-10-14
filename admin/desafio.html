@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desafio — Batalha de Prompt</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    .sub-card { background:var(--fundo); border-radius:10px; overflow:hidden; border:1px solid var(--fundo-secao); }
+    .sub-img  { width:100%; object-fit:cover; max-height:160px; display:block; }
+    .sub-body { padding:12px; }
+    .sub-prompt { font-size:12px; color:var(--texto-sec); line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .img-master { width:100%; object-fit:contain; max-height:220px; display:block; border-radius:8px; border:2px solid var(--ambar); }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="../index.html" class="header-brand">
+      <img src="../prefeitura_oriximina.png" alt="Prefeitura de Oriximiná" class="header-logo" />
+      <span class="header-title">Batalha de Prompt</span>
+    </a>
+    <nav>
+      <div class="dropdown" id="dd">
+        <button class="btn-admin" id="ddBtn">Admin <span class="arrow">▾</span></button>
+        <div class="dropdown-menu" id="ddMenu">
+          <a href="index.html">Painel Admin</a>
+          <a href="novo-desafio.html">+ Novo Desafio</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page">
+      <div class="page-inner">
+        <div style="margin-bottom:32px;">
+          <a href="index.html" class="back-link">← Voltar ao Admin</a>
+          <div class="flex-row" style="margin-top:10px;align-items:center;">
+            <h1 id="ch-title" style="font-weight:700;font-size:24px;color:var(--azul-marinho);flex:1;"></h1>
+            <button id="btn-editar" class="btn btn-xs" style="background:var(--fundo-secao);color:var(--azul-marinho);display:flex;align-items:center;gap:6px;">
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+          </div>
+        </div>
+
+        <div id="flash" class="flash"></div>
+
+        <div class="grid-auto" style="margin-bottom:28px;">
+          <div class="card">
+            <p class="label-upper">Imagem Master</p>
+            <img id="ch-img" src="" alt="Master" class="img-master" />
+          </div>
+          <div class="card">
+            <p class="label-upper">Prompt Original (secreto)</p>
+            <p id="ch-prompt" style="font-size:13px;line-height:1.6;color:var(--texto);background:var(--fundo);padding:12px;border-radius:8px;border-left:3px solid var(--ambar);"></p>
+            <div class="flex-row" style="margin-top:16px;">
+              <a href="../leaderboard.html" class="btn btn-primary btn-sm">Ver Ranking</a>
+              <a href="../jogar.html" class="btn btn-secondary btn-sm">Ver Jogo</a>
+              <button id="btn-qr" class="btn btn-xs" style="background:var(--fundo-secao);color:var(--azul-marinho);display:flex;align-items:center;gap:6px;">
+                <i class="bi bi-qr-code"></i> QR Code
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="subs-wrap" class="card" style="display:none;">
+          <h2 id="subs-titulo" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:20px;"></h2>
+          <div id="subs-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Editar -->
+  <div class="modal-overlay" id="modal-editar">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <h2 class="modal-title">Editar Desafio</h2>
+      <form id="form-editar" style="display:flex;flex-direction:column;gap:14px;">
+        <div><label class="label-upper">Título</label><input id="edit-title" type="text" class="input" required style="background:#fff;" /></div>
+        <div><label class="label-upper">URL da Imagem Master</label><input id="edit-img" type="url" class="input" required style="background:#fff;" /></div>
+        <div><label class="label-upper">Prompt Original (secreto)</label><textarea id="edit-prompt" class="input" rows="5" required style="background:#fff;resize:vertical;"></textarea></div>
+        <div class="flex-row" style="justify-content:flex-end;">
+          <button type="button" id="btn-cancelar-edit" class="btn btn-secondary btn-sm">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal QR -->
+  <div class="modal-overlay" id="modal-qr" onclick="document.getElementById('modal-qr').classList.remove('open')">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:340px;text-align:center;">
+      <p style="font-weight:700;font-size:16px;color:var(--azul-marinho);margin-bottom:6px;">Escaneie para jogar</p>
+      <p style="font-size:12px;color:var(--texto-sec);margin-bottom:20px;">Aponte a câmera do celular para o código abaixo</p>
+      <div style="display:inline-block;padding:12px;border:3px solid var(--ambar);border-radius:12px;"><div id="qr-canvas"></div></div>
+      <p id="qr-url" style="font-size:11px;color:var(--texto-sec);margin-top:16px;word-break:break-all;"></p>
+      <button onclick="document.getElementById('modal-qr').classList.remove('open')" class="btn btn-secondary btn-sm" style="margin-top:20px;">Fechar</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-esq">
+      <p>Prefeitura Municipal de Oriximiná</p>
+      <p>A transformação não vai parar</p>
+    </div>
+    <div class="footer-dir">
+      <p>SEMEG</p>
+      <p>Secretaria Municipal de Eficiência Governamental</p>
+    </div>
+  </footer>
+
+  <script src="../js/header.js"></script>
+  <script type="module">
+    import { DESAFIO } from "../js/app.js";
+
+    function scoreColor(s) { return s==null?"var(--texto-sec)":s>=70?"#065F46":s>=40?"#92400E":"#991B1B"; }
+    function scoreBg(s)    { return s==null?"var(--fundo-secao)":s>=70?"#D1FAE5":s>=40?"#FEF3C7":"#FEE2E2"; }
+
+    function flash(txt, ok=true) {
+      const el = document.getElementById("flash");
+      el.textContent=txt; el.className="flash "+(ok?"ok":"erro");
+      setTimeout(()=>el.className="flash",2500);
+    }
+
+    document.title = DESAFIO.title + " — Admin";
+    document.getElementById("ch-title").textContent  = DESAFIO.title;
+    document.getElementById("ch-img").src            = DESAFIO.masterImage;
+    document.getElementById("ch-prompt").textContent = DESAFIO.masterPrompt;
+
+    const subs = JSON.parse(localStorage.getItem("submissions") || "[]");
+    subs.sort((a,b) => (b.score??0) - (a.score??0));
+
+    if (subs.length) {
+      document.getElementById("subs-wrap").style.display = "block";
+      document.getElementById("subs-titulo").textContent = `Submissões (${subs.length})`;
+      document.getElementById("subs-grid").innerHTML = subs.map(sub => `
+        <div class="sub-card">
+          <img src="${sub.generatedImage}" alt="" class="sub-img" />
+          <div class="sub-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <p style="font-weight:700;font-size:14px;color:var(--azul-marinho);">${sub.name}</p>
+              <span class="score-badge" style="color:${scoreColor(sub.score)};background:${scoreBg(sub.score)};">${sub.score!=null?Math.round(sub.score):"—"}/100</span>
+            </div>
+            <p class="sub-prompt">${sub.prompt}</p>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // Editar
+    document.getElementById("btn-editar").addEventListener("click", () => {
+      document.getElementById("edit-title").value  = DESAFIO.title;
+      document.getElementById("edit-img").value    = DESAFIO.masterImage;
+      document.getElementById("edit-prompt").value = DESAFIO.masterPrompt;
+      document.getElementById("modal-editar").classList.add("open");
+    });
+    document.getElementById("btn-cancelar-edit").addEventListener("click", () => document.getElementById("modal-editar").classList.remove("open"));
+    document.getElementById("modal-editar").addEventListener("click", e => { if(e.target===document.getElementById("modal-editar")) document.getElementById("modal-editar").classList.remove("open"); });
+
+    document.getElementById("form-editar").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title        = document.getElementById("edit-title").value;
+      const masterImage  = document.getElementById("edit-img").value;
+      const masterPrompt = document.getElementById("edit-prompt").value;
+      const cfg = { ...DESAFIO, title, masterImage, masterPrompt };
+      localStorage.setItem("desafioConfig", JSON.stringify(cfg));
+      document.getElementById("ch-title").textContent  = title;
+      document.getElementById("ch-img").src            = masterImage;
+      document.getElementById("ch-prompt").textContent = masterPrompt;
+      document.getElementById("modal-editar").classList.remove("open");
+      flash("Desafio atualizado! Recarregue as outras páginas para ver as mudanças.");
+    });
+
+    // QR Code
+    let qrGerado = false;
+    document.getElementById("btn-qr").addEventListener("click", () => {
+      const url = location.origin + "/jogar.html";
+      document.getElementById("qr-url").textContent = url;
+      if (!qrGerado) { new QRCode(document.getElementById("qr-canvas"),{text:url,width:220,height:220,colorDark:"#001B3D",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M}); qrGerado=true; }
+      document.getElementById("modal-qr").classList.add("open");
+    });
+  </script>
+</body>
+</html>
