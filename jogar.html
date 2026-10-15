@@ -360,24 +360,29 @@
       aviso.style.display = "none";
 
       try {
-        let slotEscolhido = null;
-        let roundFinal    = null;
-        let reconexao     = false;
+        // Pré-carrega o round para garantir que o Firebase tem o dado em cache
+        // (sem isso, runTransaction recebe null na 1ª chamada e aborta)
+        const preSnap = await get(ref(db, "currentRound"));
+        const preRound = preSnap.val();
 
-        // Transação atômica: lê e reserva o slot em uma única operação no servidor
-        // Isso evita race condition quando dois jogadores entram ao mesmo tempo
+        if (!preRound || preRound.status === "done") {
+          aviso.textContent = "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
+          aviso.style.display = "block";
+          btn.disabled = false; btn.textContent = "Entrar no desafio";
+          return;
+        }
+
+        let slotEscolhido = null;
+
+        // Transação atômica: reserva o slot no servidor sem race condition
         const { committed, snapshot } = await runTransaction(ref(db, "currentRound"), (round) => {
-          if (!round || round.status === "done") return; // aborta — sem rodada válida
+          if (!round || round.status === "done") return; // aborta
 
           const slots = ["player1", "player2", "player3"];
 
           // Reconexão: mesmo nome já está num slot
           const existing = slots.find(s => round[s]?.name === nomeJogador);
-          if (existing) {
-            slotEscolhido = existing;
-            reconexao = true;
-            return round; // sem alteração, só lê
-          }
+          if (existing) { slotEscolhido = existing; return round; }
 
           // Ocupa o primeiro slot livre
           const livre = slots.find(s => !round[s]);
@@ -388,19 +393,14 @@
           return round;
         });
 
-        roundFinal = snapshot.val();
-
         if (!committed || !slotEscolhido) {
-          if (!roundFinal || roundFinal.status === "done") {
-            aviso.textContent = "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
-          } else {
-            aviso.textContent = "Os três slots desta rodada já estão ocupados. Aguarde a próxima.";
-          }
+          aviso.textContent = "Os três slots desta rodada já estão ocupados. Aguarde a próxima.";
           aviso.style.display = "block";
           btn.disabled = false; btn.textContent = "Entrar no desafio";
           return;
         }
 
+        const roundFinal = snapshot.val();
         mySlot = slotEscolhido;
         ROUND  = roundFinal;
         salvarSessao();
