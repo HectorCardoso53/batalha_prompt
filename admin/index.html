@@ -4,8 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Admin — Batalha de Prompt</title>
+  <link rel="icon" href="../logo (1).png" />
   <link rel="stylesheet" href="../css/style.css" />
   <style>
+    /* ── Tema escuro ── */
+    body {
+      background: var(--azul-escuro);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 0% 0%, rgba(0,100,255,.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(124,58,237,.12) 0%, transparent 60%);
+    }
+    .secao-titulo { color: #fff; }
+    .card {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      backdrop-filter: blur(10px);
+    }
+    .card h2, .card p:not(#key-status):not(#rodada-status):not(#ch-status):not(#admin-timer-label):not(#prog-label) {
+      color: rgba(255,255,255,.85) !important;
+    }
+    #ch-title, #rodada-titulo { color: #fff !important; }
+    .label-upper { color: rgba(255,255,255,.45) !important; }
+    #progresso-wrap { background: rgba(255,255,255,.06); }
+    #prog-label { color: rgba(255,255,255,.8); }
+
     /* ── Timer admin ── */
     #admin-timer-wrap {
       display:none; background:#0F172A; border-radius:14px;
@@ -56,14 +78,17 @@
     }
 
     /* ── Flash nos cards de jogador quando envia ── */
-    .player-slot { transition:box-shadow .3s, background .3s; border-radius:10px; }
-    .player-slot.flash-enviou {
-      animation:flash-verde .8s ease;
+    .player-slot {
+      transition:box-shadow .3s, background .3s; border-radius:10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      padding: 12px 16px;
     }
+    .player-slot.flash-enviou { animation:flash-verde .8s ease; }
     @keyframes flash-verde {
-      0%   { box-shadow:0 0 0 0 rgba(52,211,153,0); background:var(--fundo); }
-      30%  { box-shadow:0 0 0 6px rgba(52,211,153,.4); background:#ECFDF5; }
-      100% { box-shadow:0 0 0 0 rgba(52,211,153,0); background:var(--fundo); }
+      0%   { box-shadow:0 0 0 0 rgba(52,211,153,0); background:rgba(255,255,255,.06); }
+      30%  { box-shadow:0 0 0 6px rgba(52,211,153,.5); background:rgba(52,211,153,.15); }
+      100% { box-shadow:0 0 0 0 rgba(52,211,153,0); background:rgba(255,255,255,.06); }
     }
 
     /* ── Badge de enviou ── */
@@ -76,10 +101,7 @@
 </head>
 <body>
   <header class="header">
-    <a href="../index.html" class="header-brand">
-      <img src="../prefeitura_oriximina.png" alt="Prefeitura de Oriximiná" class="header-logo" />
-      <span class="header-title">Batalha de Prompt</span>
-    </a>
+    <img src="../logo (1).png" alt="Batalha de Prompt" class="header-banner" />
     <nav>
       <div class="dropdown" id="dd">
         <button class="btn-admin" id="ddBtn">Admin <span class="arrow">▾</span></button>
@@ -106,7 +128,7 @@
         <div class="card" style="margin-bottom:24px;">
           <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;">
-              <p style="font-weight:700;color:var(--azul-marinho);margin-bottom:2px;">Chave OpenAI</p>
+              <p style="font-weight:700;color:#fff;margin-bottom:2px;">Chave OpenAI</p>
               <p id="key-status" style="font-size:13px;"></p>
             </div>
             <button id="btn-key" class="btn btn-secondary btn-sm">Configurar chave</button>
@@ -121,7 +143,7 @@
         <div id="card-desafio" class="card" style="display:none;margin-bottom:24px;">
           <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;">
-              <h2 id="ch-title" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:4px;"></h2>
+              <h2 id="ch-title" style="font-weight:700;color:#fff;font-size:18px;margin-bottom:4px;"></h2>
               <p id="ch-status" style="font-size:12px;font-weight:700;"></p>
             </div>
             <div class="flex-row">
@@ -144,7 +166,7 @@
           <div class="card">
             <div class="flex-between" style="margin-bottom:16px;">
               <div>
-                <h2 id="rodada-titulo" style="font-weight:700;color:var(--azul-marinho);font-size:18px;margin-bottom:4px;"></h2>
+                <h2 id="rodada-titulo" style="font-weight:700;color:#fff;font-size:18px;margin-bottom:4px;"></h2>
                 <p id="rodada-status" style="font-size:12px;font-weight:700;"></p>
               </div>
               <div class="flex-row" style="flex-wrap:wrap;">
@@ -179,30 +201,30 @@
             <!-- Slots dos jogadores -->
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
               <!-- Jogador 1 -->
-              <div class="player-slot" id="slot-p1" style="background:var(--fundo);padding:16px;">
-                <p style="font-size:11px;font-weight:700;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 1</p>
-                <p id="p1-nome" style="font-weight:700;color:var(--azul-marinho);font-size:15px;margin-bottom:4px;">—</p>
-                <p id="p1-status" style="font-size:12px;color:var(--texto-sec);"></p>
+              <div class="player-slot" id="slot-p1">
+                <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 1</p>
+                <p id="p1-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
+                <p id="p1-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
                 <div id="p1-result" style="display:none;margin-top:10px;">
                   <img id="p1-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
                   <span id="p1-score" class="score-badge"></span>
                 </div>
               </div>
               <!-- Jogador 2 -->
-              <div class="player-slot" id="slot-p2" style="background:var(--fundo);padding:16px;">
-                <p style="font-size:11px;font-weight:700;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 2</p>
-                <p id="p2-nome" style="font-weight:700;color:var(--azul-marinho);font-size:15px;margin-bottom:4px;">—</p>
-                <p id="p2-status" style="font-size:12px;color:var(--texto-sec);"></p>
+              <div class="player-slot" id="slot-p2">
+                <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 2</p>
+                <p id="p2-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
+                <p id="p2-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
                 <div id="p2-result" style="display:none;margin-top:10px;">
                   <img id="p2-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
                   <span id="p2-score" class="score-badge"></span>
                 </div>
               </div>
               <!-- Jogador 3 -->
-              <div class="player-slot" id="slot-p3" style="background:var(--fundo);padding:16px;">
-                <p style="font-size:11px;font-weight:700;color:var(--texto-sec);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 3</p>
-                <p id="p3-nome" style="font-weight:700;color:var(--azul-marinho);font-size:15px;margin-bottom:4px;">—</p>
-                <p id="p3-status" style="font-size:12px;color:var(--texto-sec);"></p>
+              <div class="player-slot" id="slot-p3">
+                <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 3</p>
+                <p id="p3-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
+                <p id="p3-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
                 <div id="p3-result" style="display:none;margin-top:10px;">
                   <img id="p3-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
                   <span id="p3-score" class="score-badge"></span>
@@ -218,7 +240,7 @@
 
           <!-- Histórico de rodadas -->
           <div id="historico-card" class="card" style="display:none;">
-            <h3 style="font-weight:700;color:var(--azul-marinho);font-size:16px;margin-bottom:16px;">Histórico de Rodadas</h3>
+            <h3 style="font-weight:700;color:#fff;font-size:16px;margin-bottom:16px;">Histórico de Rodadas</h3>
             <div id="historico-lista"></div>
           </div>
 
@@ -228,27 +250,48 @@
     </div>
   </main>
 
-  <footer>
-    <div class="footer-esq">
-      <p>Prefeitura Municipal de Oriximiná</p>
-      <p>A transformação não vai parar</p>
+  <!-- Modal de confirmação -->
+  <div id="modal-confirm" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);align-items:center;justify-content:center;">
+    <div style="background:#0F1B35;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:32px 28px;max-width:380px;width:90%;box-shadow:0 24px 60px rgba(0,0,0,.6);text-align:center;">
+      <img src="../logo (1).png" alt="Batalha de Prompt" style="height:160px;width:auto;object-fit:contain;margin-bottom:20px;" />
+      <p id="modal-confirm-txt" style="color:#fff;font-size:16px;font-weight:600;line-height:1.5;margin-bottom:28px;"></p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button id="modal-confirm-cancel" class="btn btn-secondary btn-sm" style="min-width:100px;">Cancelar</button>
+        <button id="modal-confirm-ok" class="btn btn-primary btn-sm" style="min-width:100px;">Confirmar</button>
+      </div>
     </div>
-    <div class="footer-dir">
-      <p>SEMEG</p>
-      <p>Secretaria Municipal de Eficiência Governamental</p>
-    </div>
-  </footer>
+  </div>
 
   <script src="../js/header.js"></script>
   <script type="module">
     import { db } from "../js/app.js";
     import { ref, onValue, set, remove, update, get } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
+    // ── Modal de confirmação ─────────────────────────────────
+    function confirmar(msg) {
+      return new Promise(resolve => {
+        const modal = document.getElementById("modal-confirm");
+        document.getElementById("modal-confirm-txt").textContent = msg;
+        modal.style.display = "flex";
+        const ok     = document.getElementById("modal-confirm-ok");
+        const cancel = document.getElementById("modal-confirm-cancel");
+        function cleanup(result) {
+          modal.style.display = "none";
+          ok.replaceWith(ok.cloneNode(true));
+          cancel.replaceWith(cancel.cloneNode(true));
+          resolve(result);
+        }
+        document.getElementById("modal-confirm-ok").addEventListener("click", () => cleanup(true), { once: true });
+        document.getElementById("modal-confirm-cancel").addEventListener("click", () => cleanup(false), { once: true });
+        modal.addEventListener("click", e => { if (e.target === modal) cleanup(false); }, { once: true });
+      });
+    }
+
     // ── Chave OpenAI ─────────────────────────────────────────
     function atualizarKeyStatus() {
       const key = localStorage.getItem("openaiKey");
       document.getElementById("key-status").textContent = key ? "✓ Chave configurada" : "⚠ Chave não configurada";
-      document.getElementById("key-status").style.color = key ? "#065F46" : "#92400E";
+      document.getElementById("key-status").style.color = key ? "#fff" : "#FCD34D";
     }
     atualizarKeyStatus();
 
@@ -275,7 +318,7 @@
 
       const enviou = !!player?.done;
       statusEl.textContent = player ? (enviou ? "✓ Enviou" : "⏳ Jogando...") : "Aguardando...";
-      statusEl.style.color = enviou ? "#065F46" : "var(--texto-sec)";
+      statusEl.style.color = enviou ? "#34D399" : "rgba(255,255,255,.4)";
 
       // flash ao enviar
       if (enviou && !prevDone[slotKey] && player) {
@@ -350,7 +393,7 @@
     // ── Status com dot pulsante ──────────────────────────────
     function renderStatusRodada(status) {
       const el = document.getElementById("rodada-status");
-      const colorMap = { waiting:"#92400E", active:"#065F46", done:"#999" };
+      const colorMap = { waiting:"#FCD34D", active:"#34D399", done:"rgba(255,255,255,.4)" };
       const labelMap = { waiting:"Aguardando jogadores", active:"Em andamento", done:"Encerrada" };
       el.style.color = colorMap[status] || "";
       if (status === "active") {
@@ -376,7 +419,7 @@
       document.getElementById("ch-title").textContent = DESAFIO.title;
       const ativo = DESAFIO.isActive;
       document.getElementById("ch-status").textContent = ativo ? "● Ativo" : "○ Pausado";
-      document.getElementById("ch-status").style.color = ativo ? "#065F46" : "#92400E";
+      document.getElementById("ch-status").style.color = ativo ? "#fff" : "#FCD34D";
       document.getElementById("btn-toggle").textContent = ativo ? "⏸ Pausar" : "▶ Ativar";
     });
 
@@ -386,7 +429,7 @@
     });
 
     document.getElementById("btn-apagar").addEventListener("click", async () => {
-      if (!confirm("Apagar este desafio e todas as rodadas? Ação irreversível.")) return;
+      if (!await confirmar("Apagar este desafio e todas as rodadas? Esta ação é irreversível.")) return;
       await remove(ref(db, "challenge"));
       await remove(ref(db, "currentRound"));
       await remove(ref(db, "rounds"));
@@ -444,7 +487,7 @@
       const txt    = document.getElementById("vencedor-txt");
       if (RODADA.rankings && RODADA.rankings.length > 0) {
         banner.style.display = "block";
-        banner.style.background = "#D1FAE5"; txt.style.color = "#065F46";
+        banner.style.background = "rgba(0,60,180,.35)"; txt.style.color = "#fff";
         const nome1 = RODADA[RODADA.rankings[0]]?.name || "—";
         const nome2 = RODADA.rankings[1] ? (RODADA[RODADA.rankings[1]]?.name || "—") : null;
         const nome3 = RODADA.rankings[2] ? (RODADA[RODADA.rankings[2]]?.name || "—") : null;
@@ -455,11 +498,11 @@
       } else if (RODADA.winner) {
         banner.style.display = "block";
         if (RODADA.winner === "tie") {
-          banner.style.background = "#FEF3C7"; txt.style.color = "#92400E";
+          banner.style.background = "rgba(0,60,180,.35)"; txt.style.color = "#fff";
           txt.textContent = "🤝 Empate!";
         } else {
           const w = RODADA[RODADA.winner];
-          banner.style.background = "#D1FAE5"; txt.style.color = "#065F46";
+          banner.style.background = "rgba(0,60,180,.35)"; txt.style.color = "#fff";
           txt.textContent = `🏆 Vencedor: ${w?.name || ""}`;
         }
       } else { banner.style.display = "none"; }
@@ -478,7 +521,9 @@
         const pa = rodada[a], pb = rodada[b];
         const doneA = pa?.done ? 1 : 0, doneB = pb?.done ? 1 : 0;
         if (doneA !== doneB) return doneB - doneA;
-        return (pb?.score ?? 0) - (pa?.score ?? 0);
+        const scoreDiff = (pb?.score ?? 0) - (pa?.score ?? 0);
+        if (scoreDiff !== 0) return scoreDiff;
+        return (pa?.submittedAt ?? Infinity) - (pb?.submittedAt ?? Infinity);
       });
       return ordenados;
     }
@@ -495,23 +540,23 @@
     }
 
     document.getElementById("btn-revelar-timer").addEventListener("click", async () => {
-      if (!confirm("Encerrar a rodada e revelar os resultados?")) return;
+      if (!await confirmar("Encerrar a rodada e revelar os resultados?")) return;
       await encerrarRodada();
     });
     document.getElementById("btn-revelar-alerta").addEventListener("click", async () => {
-      if (!confirm("Encerrar a rodada e revelar os resultados?")) return;
+      if (!await confirmar("Encerrar a rodada e revelar os resultados?")) return;
       await encerrarRodada();
     });
 
     // ── Encerrar e revelar ────────────────────────────────────
     document.getElementById("btn-revelar").addEventListener("click", async () => {
-      if (!confirm("Encerrar a rodada e revelar os resultados no projetor?")) return;
+      if (!await confirmar("Encerrar a rodada e revelar os resultados no projetor?")) return;
       await encerrarRodada();
     });
 
     // ── Próxima rodada ───────────────────────────────────────
     document.getElementById("btn-proxima").addEventListener("click", async () => {
-      if (!confirm("Iniciar a próxima rodada? A rodada atual será arquivada.")) return;
+      if (!await confirmar("Iniciar a próxima rodada? A rodada atual será arquivada.")) return;
       if (RODADA) {
         await set(ref(db, `rounds/${RODADA.number}`), RODADA);
       }
@@ -536,21 +581,31 @@
       const hCard = document.getElementById("historico-card");
       if (!data) { hCard.style.display = "none"; return; }
 
+      const medals = ["🏆","🥈","🥉"];
       const rodadas = Object.values(data).sort((a,b) => (a.number||0)-(b.number||0));
       hCard.style.display = "block";
       document.getElementById("historico-lista").innerHTML = rodadas.map(r => {
-        const w = r.winner === "player1" ? r.player1 : r.winner === "player2" ? r.player2 : null;
+        const slots = ["player1","player2","player3"];
+        const ranking = r.rankings || slots;
+
+        const jogadores = ranking.map((slot, i) => {
+          const p = r[slot];
+          if (!p?.name) return "";
+          const score = p.score != null ? `${Math.round(p.score)}/100` : "—";
+          const isWinner = i === 0 && p.done;
+          return `
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+              <span style="font-size:15px;">${medals[i]||"·"}</span>
+              <span style="font-weight:700;color:${isWinner?"#FFD700":"#fff"};font-size:13px;flex:1;">${p.name}</span>
+              <span style="font-size:12px;font-weight:700;color:${p.done?(p.score>=70?"#34D399":p.score>=40?"#FCD34D":"#F87171"):"rgba(255,255,255,.3)"};">${score}</span>
+            </div>`;
+        }).filter(Boolean).join("");
+
         return `
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--fundo-secao);">
-            <span style="font-weight:700;color:var(--azul-marinho);min-width:80px;">Rodada ${r.number}</span>
-            <span style="flex:1;color:var(--texto-sec);font-size:13px;">
-              ${r.player1?.name||"—"} vs ${r.player2?.name||"—"}
-            </span>
-            <span style="font-size:13px;font-weight:700;color:${w?"#065F46":"#999"};">
-              ${r.winner==="tie"?"🤝 Empate":w?`🏆 ${w.name}`:"Sem resultado"}
-            </span>
-          </div>
-        `;
+          <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08);">
+            <p style="font-weight:700;color:#fff;font-size:14px;margin-bottom:10px;">Rodada ${r.number}</p>
+            <div style="display:flex;flex-direction:column;gap:6px;">${jogadores || '<span style="color:rgba(255,255,255,.3);font-size:13px;">Sem jogadores</span>'}</div>
+          </div>`;
       }).join("");
     });
   </script>

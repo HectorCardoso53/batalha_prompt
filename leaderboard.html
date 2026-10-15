@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ranking — Batalha de Prompt</title>
+  <link rel="icon" href="logo (1).png" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
     .rank-row { display:flex; align-items:center; gap:16px; padding:14px 0; border-bottom:1px solid var(--fundo-secao); }
@@ -19,10 +20,7 @@
 </head>
 <body>
   <header class="header">
-    <a href="index.html" class="header-brand">
-      <img src="prefeitura_oriximina.png" alt="Prefeitura de Oriximiná" class="header-logo" />
-      <span class="header-title">Batalha de Prompt</span>
-    </a>
+    <img src="logo (1).png" alt="Batalha de Prompt" class="header-banner" />
   </header>
 
   <main>
@@ -38,16 +36,6 @@
     </div>
   </main>
 
-  <footer>
-    <div class="footer-esq">
-      <p>Prefeitura Municipal de Oriximiná</p>
-      <p>A transformação não vai parar</p>
-    </div>
-    <div class="footer-dir">
-      <p>SEMEG</p>
-      <p>Secretaria Municipal de Eficiência Governamental</p>
-    </div>
-  </footer>
 
   <script src="js/header.js"></script>
   <script type="module">
@@ -79,7 +67,7 @@
       document.getElementById("lista").innerHTML = subs.map((sub, i) => `
         <div class="rank-row ${rowClass(i)}">
           <div class="rank-pos ${medalha(i)}">${emoji(i)}</div>
-          <img src="${sub.generatedImage}" alt="" class="rank-img" />
+          ${sub.generatedImage ? `<img src="${sub.generatedImage}" alt="" class="rank-img" />` : `<div class="rank-img" style="background:var(--fundo-secao);display:flex;align-items:center;justify-content:center;font-size:28px;border-radius:8px;">📝</div>`}
           <div style="flex:1;min-width:0;">
             <p style="font-weight:700;color:var(--azul-marinho);font-size:16px;margin-bottom:2px;">${sub.name}</p>
             <p style="font-size:12px;color:var(--texto-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub.prompt}</p>

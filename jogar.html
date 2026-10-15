@@ -4,9 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jogar — Batalha de Prompt</title>
+  <link rel="icon" href="logo (1).png" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
+    body {
+      background: var(--azul-escuro);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 0% 0%, rgba(0,100,255,.2) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(124,58,237,.18) 0%, transparent 60%);
+    }
+    @keyframes flutuar {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    .logo-flutuando {
+      animation: flutuar 3s ease-in-out infinite;
+    }
+    .secao-titulo { color: #fff; }
+    .label { color: rgba(255,255,255,.65); }
+    p { color: rgba(255,255,255,.8); }
+    .card {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+    }
+    .input {
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.18);
+      color: #fff;
+    }
+    .input::placeholder { color: rgba(255,255,255,.35); }
+    .input:focus {
+      background: rgba(255,255,255,.12);
+      border-color: var(--azul-ceu);
+    }
     .step { display:none; } .step.ativo { display:block; }
+    #step-login.ativo, #step-espera.ativo { display:flex; align-items:center; justify-content:center; }
     .img-ambar { width:100%; border-radius:8px; border:2px solid var(--ambar); display:block; object-fit:contain; }
     .img-azul  { width:100%; border-radius:8px; border:2px solid var(--azul-ceu); display:block; object-fit:contain; }
     .prompt-citado { border-left:3px solid var(--ambar); padding-left:14px; font-size:14px; line-height:1.6; }
@@ -22,19 +55,13 @@
   </style>
 </head>
 <body>
-  <header class="header">
-    <a href="index.html" class="header-brand">
-      <img src="prefeitura_oriximina.png" alt="Prefeitura de Oriximiná" class="header-logo" />
-      <span class="header-title">Batalha de Prompt</span>
-    </a>
-  </header>
-
-  <main>
+  <main style="padding-top:0;">
     <!-- LOGIN -->
-    <div id="step-login" class="step ativo page">
-      <div class="page-inner-md" style="max-width:440px;">
-        <h1 class="secao-titulo" style="text-align:left;">Entrar na Batalha</h1>
-        <div class="secao-traco" style="margin:8px 0 24px;"></div>
+    <div id="step-login" class="step ativo page" style="min-height:100vh;">
+      <div style="width:100%;max-width:420px;text-align:center;">
+        <img src="logo (1).png" alt="Batalha de Prompt" class="logo-flutuando" style="height:220px;width:auto;object-fit:contain;margin-bottom:32px;" />
+        <h1 class="secao-titulo" style="text-align:center;margin-bottom:6px;">Entrar na Batalha</h1>
+        <div class="secao-traco" style="margin:0 auto 24px;"></div>
         <div id="aviso" class="aviso-amarelo" style="display:none;"></div>
         <div class="card">
           <form id="form-login" style="display:flex;flex-direction:column;gap:14px;">
@@ -49,12 +76,13 @@
     </div>
 
     <!-- ESPERA (slot reservado, aguardando admin iniciar) -->
-    <div id="step-espera" class="step page">
-      <div class="page-inner-md" style="max-width:440px;text-align:center;">
-        <div class="card" style="padding:48px 24px;">
+    <div id="step-espera" class="step page" style="min-height:100vh;">
+      <div style="width:100%;max-width:440px;text-align:center;">
+        <img src="logo (1).png" alt="Batalha de Prompt" class="logo-flutuando" style="height:200px;width:auto;object-fit:contain;margin-bottom:28px;" />
+        <div class="card" style="padding:40px 24px;">
           <p id="espera-slot" class="slot-badge"></p>
-          <h2 id="espera-nome" style="font-weight:700;font-size:22px;color:var(--azul-marinho);margin:12px 0 8px;"></h2>
-          <p style="color:var(--texto-sec);font-size:14px;">Aguardando o admin iniciar a rodada...</p>
+          <h2 id="espera-nome" style="font-weight:700;font-size:24px;color:#fff;margin:12px 0 8px;"></h2>
+          <p style="color:rgba(255,255,255,.55);font-size:14px;">Aguardando o admin iniciar a rodada...</p>
           <div style="margin-top:24px;font-size:32px;">⏳</div>
         </div>
       </div>
@@ -106,10 +134,10 @@
         <!-- Pontuação própria -->
         <div class="card flex-row" style="align-items:center;gap:20px;margin-bottom:24px;">
           <div>
-            <p style="font-size:13px;color:var(--texto-sec);font-weight:700;margin-bottom:4px;">Pontuação de similaridade</p>
+            <p style="font-size:13px;color:rgba(255,255,255,.6);font-weight:700;margin-bottom:4px;">Pontuação de similaridade</p>
             <div style="display:flex;align-items:baseline;gap:4px;">
               <span id="score-num" style="font-size:64px;font-weight:900;"></span>
-              <span style="font-size:24px;color:var(--texto-sec);font-weight:700;">/100</span>
+              <span style="font-size:24px;color:rgba(255,255,255,.6);font-weight:700;">/100</span>
             </div>
           </div>
           <div id="score-msg" style="flex:1;min-width:200px;border-radius:10px;padding:16px 20px;font-weight:700;font-size:15px;"></div>
@@ -117,25 +145,25 @@
 
         <!-- Suas imagens -->
         <div class="card" style="margin-bottom:24px;">
-          <p class="label-upper">Imagem Master</p>
+          <p class="label-upper" style="color:rgba(255,255,255,.5);">Imagem Master</p>
           <img id="res-master" src="" alt="Master" class="img-ambar" />
         </div>
 
         <!-- Seu prompt -->
         <div class="card" style="margin-bottom:24px;">
-          <p style="font-weight:700;font-size:13px;color:var(--texto-sec);margin-bottom:6px;">Prompt enviado:</p>
-          <p id="res-prompt" class="prompt-citado"></p>
+          <p style="font-weight:700;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Prompt enviado:</p>
+          <p id="res-prompt" class="prompt-citado" style="color:#fff;"></p>
         </div>
 
         <!-- Prompt original revelado -->
-        <div class="reveal-box" style="margin-bottom:24px;">
-          <p>Prompt Original (revelado)</p>
-          <p id="res-master-prompt"></p>
+        <div class="reveal-box" style="margin-bottom:24px;background:rgba(255,200,0,.08);border-color:var(--ambar);">
+          <p style="color:var(--ambar);">Prompt Original (revelado)</p>
+          <p id="res-master-prompt" style="color:#fff;"></p>
         </div>
 
         <!-- Adversários -->
         <div class="card" style="margin-bottom:24px;">
-          <h2 style="font-weight:700;font-size:16px;color:var(--azul-marinho);margin-bottom:16px;">⚔️ Adversários</h2>
+          <h2 style="font-weight:700;font-size:16px;color:#fff;margin-bottom:16px;">⚔️ Adversários</h2>
           <div id="oponentes-lista"></div>
         </div>
 
@@ -144,22 +172,16 @@
           <p id="banner-txt" style="font-size:22px;font-weight:900;"></p>
         </div>
 
-        <a href="leaderboard.html" class="btn btn-primary">🏆 Ver Ranking</a>
       </div>
     </div>
   </main>
 
-  <footer>
-    <div class="footer-esq">
-      <p>Prefeitura Municipal de Oriximiná</p>
-      <p>A transformação não vai parar</p>
-    </div>
-    <div class="footer-dir">
-      <p>SEMEG</p>
-      <p>Secretaria Municipal de Eficiência Governamental</p>
-      <a href="admin/index.html" style="font-size:11px;color:rgba(255,255,255,.25);text-decoration:none;margin-top:4px;display:inline-block;">Admin</a>
-    </div>
-  </footer>
+  <!-- Overlay: nomes dos competidores ao iniciar -->
+  <div id="overlay-inicio" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,10,30,.92);flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px;">
+    <p style="font-size:13px;font-weight:700;color:var(--ambar);letter-spacing:.12em;text-transform:uppercase;">Competidores desta rodada</p>
+    <h2 style="font-size:26px;font-weight:900;color:#fff;margin-bottom:8px;">⚔️ Que comecem os jogos!</h2>
+    <div id="overlay-jogadores" style="display:flex;flex-direction:column;gap:10px;margin-top:8px;"></div>
+  </div>
 
   <script src="js/header.js"></script>
   <script type="module">
@@ -171,6 +193,18 @@
     let mySlot     = null; // "player1" | "player2" | "player3"
     let nomeJogador= "";
     let timerInterval = null;
+    let initialized = false;
+
+    const SLOT_LABELS = { player1:"Jogador 1", player2:"Jogador 2", player3:"Jogador 3" };
+
+    function salvarSessao() {
+      localStorage.setItem("batalha_slot", mySlot);
+      localStorage.setItem("batalha_nome", nomeJogador);
+    }
+    function limparSessao() {
+      localStorage.removeItem("batalha_slot");
+      localStorage.removeItem("batalha_nome");
+    }
 
     function showStep(id) {
       document.querySelectorAll(".step").forEach(s => s.classList.remove("ativo"));
@@ -196,6 +230,10 @@
           document.getElementById("inp-prompt").disabled = true;
           document.getElementById("btn-prompt").disabled = true;
           document.getElementById("btn-prompt").textContent = "Tempo esgotado";
+          setTimeout(() => {
+            window.close();
+            setTimeout(() => window.location.replace("index.html"), 800);
+          }, 2000);
         }
       }
       tick();
@@ -221,9 +259,54 @@
     onValue(ref(db, "currentRound"), snap => {
       ROUND = snap.val();
 
+      // Primeira execução: tenta restaurar sessão salva no localStorage
+      if (!initialized) {
+        initialized = true;
+        const savedSlot = localStorage.getItem("batalha_slot");
+        const savedNome = localStorage.getItem("batalha_nome");
+        if (savedSlot && savedNome && ROUND && ROUND[savedSlot]?.name === savedNome) {
+          mySlot = savedSlot;
+          nomeJogador = savedNome;
+          if (ROUND.status === "active") {
+            entrarNoJogo(); return;
+          } else if (ROUND.status === "waiting") {
+            document.getElementById("espera-slot").textContent = SLOT_LABELS[mySlot];
+            document.getElementById("espera-nome").textContent = nomeJogador;
+            showStep("step-espera"); return;
+          } else {
+            limparSessao();
+          }
+        }
+      }
+
+      // Rodada encerrada: limpa sessão persistida
+      if (ROUND?.status === "done") limparSessao();
+
+      // Nova rodada disponível: reativa o login se estava bloqueado por "done"
+      if (document.getElementById("step-login").classList.contains("ativo") && ROUND?.status === "waiting") {
+        const aviso = document.getElementById("aviso");
+        const btn   = document.getElementById("btn-login");
+        if (aviso.textContent.includes("rodada")) { aviso.style.display = "none"; }
+        if (CHALLENGE?.isActive) btn.disabled = false;
+      }
+
       // Espera → Jogo: rodada ficou ativa
       if (document.getElementById("step-espera").classList.contains("ativo") && ROUND?.status === "active") {
-        entrarNoJogo();
+        if (!CHALLENGE) {
+          get(ref(db, "challenge")).then(s => { CHALLENGE = s.val(); entrarNoJogo(); });
+        } else {
+          entrarNoJogo();
+        }
+        return;
+      }
+
+      // Login → Jogo: entrou enquanto rodada já estava ativa e slot é seu
+      if (document.getElementById("step-login").classList.contains("ativo") && ROUND?.status === "active" && mySlot) {
+        if (!CHALLENGE) {
+          get(ref(db, "challenge")).then(s => { CHALLENGE = s.val(); entrarNoJogo(); });
+        } else {
+          entrarNoJogo();
+        }
         return;
       }
 
@@ -240,76 +323,96 @@
       }
     });
 
-    function entrarNoJogo() {
-      if (!CHALLENGE || !ROUND) return;
-      document.getElementById("game-nome").textContent      = nomeJogador;
-      document.getElementById("game-title").textContent     = CHALLENGE.title;
-      document.getElementById("game-img").src               = CHALLENGE.masterImage;
-      document.getElementById("game-slot-badge").textContent = mySlot === "player1" ? "Jogador 1" : mySlot === "player2" ? "Jogador 2" : "Jogador 3";
+    async function entrarNoJogo() {
+      if (!ROUND) return;
+      if (!CHALLENGE) {
+        const s = await get(ref(db, "challenge"));
+        CHALLENGE = s.val();
+      }
+      if (!CHALLENGE) return;
+      document.getElementById("game-nome").textContent       = nomeJogador;
+      document.getElementById("game-title").textContent      = CHALLENGE.title;
+      document.getElementById("game-img").src                = CHALLENGE.masterImage;
+      document.getElementById("game-slot-badge").textContent = SLOT_LABELS[mySlot];
       if (ROUND.startedAt) iniciarTimer(ROUND.startedAt, CHALLENGE.timeLimit || 180);
       showStep("step-game");
+
+      // Overlay com nomes dos competidores por 3 s
+      const overlay = document.getElementById("overlay-inicio");
+      document.getElementById("overlay-jogadores").innerHTML =
+        ["player1","player2","player3"]
+          .filter(s => ROUND[s]?.name)
+          .map(s => `<div style="font-size:17px;font-weight:700;color:#fff;padding:10px 32px;border-radius:8px;background:rgba(255,255,255,.1);">${SLOT_LABELS[s]}: ${ROUND[s].name}</div>`)
+          .join("");
+      overlay.style.display = "flex";
+      setTimeout(() => { overlay.style.display = "none"; }, 3000);
     }
 
     // ── Login ────────────────────────────────────────────────
     document.getElementById("form-login").addEventListener("submit", async e => {
       e.preventDefault();
-      const btn = document.getElementById("btn-login");
+      const btn   = document.getElementById("btn-login");
+      const aviso = document.getElementById("aviso");
       if (!CHALLENGE || !CHALLENGE.isActive) return;
 
       nomeJogador = document.getElementById("inp-nome").value.trim();
       btn.disabled = true; btn.textContent = "Entrando...";
-
-      const aviso = document.getElementById("aviso");
-
-      // Verifica round atual
-      const roundSnap = await get(ref(db, "currentRound"));
-      const round = roundSnap.val();
-
-      if (!round || round.status === "done") {
-        aviso.textContent = "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
-        aviso.style.display = "block";
-        btn.disabled = false; btn.textContent = "Entrar no desafio";
-        return;
-      }
-
-      // Tenta ocupar um slot
-      if (!round.player1) {
-        await set(ref(db, "currentRound/player1"), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
-        mySlot = "player1";
-      } else if (!round.player2) {
-        await set(ref(db, "currentRound/player2"), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
-        mySlot = "player2";
-      } else if (!round.player3) {
-        await set(ref(db, "currentRound/player3"), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
-        mySlot = "player3";
-      } else {
-        aviso.textContent = "Os três slots desta rodada já estão ocupados. Aguarde a próxima.";
-        aviso.style.display = "block";
-        btn.disabled = false; btn.textContent = "Entrar no desafio";
-        return;
-      }
-
       aviso.style.display = "none";
 
-      // Busca o estado mais recente após salvar o slot
-      const roundAtual = (await get(ref(db, "currentRound"))).val();
-      const todosPreenchidos = roundAtual?.player1 && roundAtual?.player2 && roundAtual?.player3;
+      try {
+        const roundSnap = await get(ref(db, "currentRound"));
+        const round = roundSnap.val();
 
-      if (todosPreenchidos && roundAtual.status === "waiting") {
-        // Último jogador a entrar — inicia a rodada automaticamente
-        const startedAt = Date.now();
-        await update(ref(db, "currentRound"), { status: "active", startedAt });
-        ROUND = (await get(ref(db, "currentRound"))).val();
-        entrarNoJogo();
-      } else if (roundAtual.status === "active") {
-        // Rodada já em andamento (entrou depois da auto-iniciação)
-        ROUND = roundAtual;
-        entrarNoJogo();
-      } else {
-        // Aguardando os outros jogadores se cadastrarem
+        if (!round || round.status === "done") {
+          aviso.textContent = "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
+          aviso.style.display = "block";
+          btn.disabled = false; btn.textContent = "Entrar no desafio";
+          return;
+        }
+
+        // Reconexão: mesmo nome já está num slot?
+        const slots = ["player1", "player2", "player3"];
+        const slotReconexao = slots.find(s => round[s]?.name === nomeJogador);
+        if (slotReconexao) {
+          mySlot = slotReconexao;
+          ROUND  = round;
+          if (round.status === "active") { entrarNoJogo(); return; }
+          document.getElementById("espera-slot").textContent = mySlot === "player1" ? "Jogador 1" : mySlot === "player2" ? "Jogador 2" : "Jogador 3";
+          document.getElementById("espera-nome").textContent = nomeJogador;
+          showStep("step-espera");
+          return;
+        }
+
+        // Tenta ocupar um slot livre
+        let slotEscolhido = null;
+        if (!round.player1)      slotEscolhido = "player1";
+        else if (!round.player2) slotEscolhido = "player2";
+        else if (!round.player3) slotEscolhido = "player3";
+        else {
+          aviso.textContent = "Os três slots desta rodada já estão ocupados. Aguarde a próxima.";
+          aviso.style.display = "block";
+          btn.disabled = false; btn.textContent = "Entrar no desafio";
+          return;
+        }
+
+        mySlot = slotEscolhido; // define ANTES do await para que onValue tenha acesso durante a escrita
+        salvarSessao();
+        await set(ref(db, `currentRound/${slotEscolhido}`), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
+
+        // Se a rodada já ficou ativa durante o await, entra direto
+        if (ROUND?.status === "active") {
+          entrarNoJogo();
+          return;
+        }
+
+        // Aguarda o admin clicar em Iniciar Rodada
         document.getElementById("espera-slot").textContent = mySlot === "player1" ? "Jogador 1" : mySlot === "player2" ? "Jogador 2" : "Jogador 3";
         document.getElementById("espera-nome").textContent = nomeJogador;
         showStep("step-espera");
+      } catch (err) {
+        aviso.textContent = "Erro ao conectar. Tente novamente.";
+        aviso.style.display = "block";
+        btn.disabled = false; btn.textContent = "Entrar no desafio";
       }
     });
 
@@ -368,7 +471,7 @@
 
         // 2. Salva no slot do Firebase
         await update(ref(db, `currentRound/${mySlot}`), {
-          prompt, generatedImage: null, score: scoreFinal, done: true,
+          prompt, generatedImage: null, score: scoreFinal, done: true, submittedAt: Date.now(),
         });
 
         // 3. Salva em /submissions para o leaderboard
@@ -387,7 +490,10 @@
             const pa = roundAtual[a], pb = roundAtual[b];
             const doneA = pa?.done ? 1 : 0, doneB = pb?.done ? 1 : 0;
             if (doneA !== doneB) return doneB - doneA;
-            return (pb?.score ?? 0) - (pa?.score ?? 0);
+            const scoreDiff = (pb?.score ?? 0) - (pa?.score ?? 0);
+            if (scoreDiff !== 0) return scoreDiff;
+            // Desempate: quem enviou primeiro ganha
+            return (pa?.submittedAt ?? Infinity) - (pb?.submittedAt ?? Infinity);
           });
           const winner = rankings[0];
           await update(ref(db, "currentRound"), { winner, rankings, status: "done" });
@@ -440,17 +546,17 @@
         const bgColor  = scoreBg(s);
         const txtColor = scoreColor(s);
         let html = `
-          <div style="border:1px solid var(--fundo-secao);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+          <div style="border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
             <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
-              <p style="font-weight:700;font-size:15px;color:var(--azul-marinho);flex:1;">${op.name || "—"}</p>
+              <p style="font-weight:700;font-size:15px;color:#fff;flex:1;">${op.name || "—"}</p>
               <span class="score-badge" style="font-size:16px;font-weight:900;color:${txtColor};background:${bgColor};">${Math.round(s)}/100</span>
             </div>`;
         if (op.generatedImage) {
           html += `<img src="${op.generatedImage}" alt="Imagem do adversário" class="img-azul" style="margin-bottom:10px;" />`;
         }
         html += `
-            <p style="font-size:12px;color:var(--texto-sec);margin-bottom:4px;font-weight:700;">Prompt do adversário:</p>
-            <p class="prompt-citado">${op.prompt || ""}</p>
+            <p style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px;font-weight:700;">Prompt do adversário:</p>
+            <p class="prompt-citado" style="color:#fff;">${op.prompt || ""}</p>
           </div>`;
         return html;
       }).join("");

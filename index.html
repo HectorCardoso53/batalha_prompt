@@ -4,11 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Batalha de Prompt</title>
+  <link rel="icon" href="logo (1).png" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
   <style>
     body { background: var(--azul-escuro); }
-    main { flex:1; display:flex; flex-direction:column; background:var(--azul-escuro); padding-top:64px; min-height:0; }
+    main { flex:1; display:flex; flex-direction:column; background:var(--azul-escuro); padding-top:0; min-height:0; height:100vh; }
     .tela { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow:auto; }
 
     /* ═══════════════════════════════════
@@ -42,55 +43,69 @@
        TELA 3 — Rodada ativa
     ═══════════════════════════════════ */
     #tela-ativa {
-      display:none; flex:1; min-height:0; width:100%;
+      display:none; width:100%; height:100vh;
     }
     #tela-ativa.visivel {
-      display:grid; grid-template-columns:1fr 300px;
+      display:grid; grid-template-rows:auto 1fr auto auto;
     }
 
-    .ativa-esq {
-      background:#000; display:flex; align-items:center; justify-content:center;
-      overflow:hidden; cursor:zoom-in;
+    /* Imagem topo */
+    .ativa-img-wrap {
+      background:var(--azul-escuro); display:flex; align-items:center; justify-content:center;
+      overflow:hidden; cursor:zoom-in; min-height:0; position:relative;
     }
-    #master-img { width:100%; height:100%; object-fit:contain; display:block; }
-
-    .ativa-dir {
-      background:rgba(255,255,255,.04); border-left:1px solid rgba(255,255,255,.08);
-      display:flex; flex-direction:column; padding:20px 16px; gap:14px; overflow:auto;
+    #master-img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
+    .ativa-logo-bar {
+      display:flex; align-items:center; justify-content:center;
+      padding:12px 0; background:var(--azul-escuro);
+      border-bottom:1px solid rgba(255,255,255,.07);
+      flex-shrink:0;
     }
 
-    .ativa-header { padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,.06); }
-    .ativa-rodada-label  { font-size:11px; font-weight:700; color:var(--ambar); text-transform:uppercase; letter-spacing:.1em; }
-    .ativa-rodada-titulo { color:#fff; font-size:15px; font-weight:700; margin-top:2px; line-height:1.3; }
+    /* Barra do meio: info + timer */
+    .ativa-info-bar {
+      display:flex; align-items:center; justify-content:center; gap:32px;
+      padding:14px 40px;
+    }
+    .ativa-info-rodada { text-align:center; }
+    .ativa-rodada-label  { font-size:10px; font-weight:700; color:var(--ambar); text-transform:uppercase; letter-spacing:.12em; }
+    .ativa-rodada-titulo { color:rgba(255,255,255,.55); font-size:13px; font-weight:600; margin-top:3px; }
 
     .ativa-timer {
-      text-align:center; background:rgba(0,0,0,.3); border-radius:14px; padding:14px 10px;
+      text-align:center; padding:0;
     }
-    .ativa-timer-label { font-size:10px; font-weight:700; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; }
-    #timer-num { font-size:54px; font-weight:900; font-variant-numeric:tabular-nums; color:#fff; transition:color .3s; line-height:1; display:block; }
+    .ativa-timer-label { font-size:9px; font-weight:700; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.12em; margin-bottom:4px; }
+    #timer-num { font-size:44px; font-weight:900; font-variant-numeric:tabular-nums; color:#fff; transition:color .3s; line-height:1; display:block; }
     #timer-num.amarelo { color:#FFC107; }
     #timer-num.vermelho { color:#EF4444; animation:timer-pisca .6s ease-in-out infinite; }
     @keyframes timer-pisca { 0%,100%{opacity:1} 50%{opacity:.45} }
 
+    /* Barra inferior: jogadores */
+    .ativa-players-bar {
+      display:flex; align-items:center; justify-content:center; gap:16px;
+      padding:14px 40px; background:rgba(0,0,0,.25);
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+
     .ativa-player {
       background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
-      border-radius:12px; padding:12px 14px;
-      display:flex; align-items:center; gap:10px;
+      border-radius:12px; padding:10px 18px; flex:1; max-width:320px;
+      display:flex; align-items:center; gap:12px;
       transition:border-color .3s, background .3s;
     }
     .ativa-player.enviou { border-color:#34D399; background:rgba(52,211,153,.08); }
     .ativa-player.vazio  { opacity:.35; }
     .ativa-player-avatar {
-      width:38px; height:38px; border-radius:50%;
+      width:36px; height:36px; border-radius:50%;
       background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center;
-      font-size:16px; flex-shrink:0; color:rgba(255,255,255,.5);
+      font-size:15px; flex-shrink:0; color:rgba(255,255,255,.5);
     }
     .ativa-player.enviou .ativa-player-avatar { background:rgba(52,211,153,.2); color:#34D399; font-weight:900; }
     .ativa-player-info { flex:1; min-width:0; }
     .ativa-player-nome   { color:#fff; font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .ativa-player-status { font-size:12px; color:rgba(255,255,255,.4); margin-top:2px; }
     .ativa-player.enviou .ativa-player-status { color:#34D399; }
-    .ativa-vs { text-align:center; font-size:11px; font-weight:900; color:rgba(255,255,255,.15); letter-spacing:.15em; }
+    .ativa-vs { font-size:11px; font-weight:900; color:rgba(255,255,255,.2); letter-spacing:.15em; flex-shrink:0; }
 
     /* ═══════════════════════════════════
        TELA 4 — Pódio / Celebração
@@ -104,23 +119,26 @@
     #tela-celebracao.ativa { display:flex; }
 
     .celeb-pretitulo {
-      font-size:clamp(11px,1.2vw,14px); font-weight:700; color:var(--ambar);
-      text-transform:uppercase; letter-spacing:.15em; margin-bottom:8px;
+      font-size:clamp(9px,0.9vw,11px); font-weight:700; color:var(--ambar);
+      text-transform:uppercase; letter-spacing:.15em; margin-bottom:4px;
       position:relative; z-index:1;
     }
     .celeb-titulo {
-      color:#fff; font-size:clamp(26px,4vw,48px); font-weight:900;
-      line-height:1.15; margin-bottom:32px;
+      color:#fff; font-size:clamp(16px,2.2vw,28px); font-weight:900;
+      line-height:1.15; margin-bottom:16px;
       position:relative; z-index:1;
     }
     .celeb-titulo span { color:var(--ambar); }
 
+    /* Confete */
+    #confete-canvas { position:fixed; inset:0; pointer-events:none; z-index:110; }
+
     /* Pódio */
     .podio {
-      display:flex; align-items:flex-end; justify-content:center; gap:12px;
-      margin-bottom:32px; position:relative; z-index:1;
+      display:flex; align-items:flex-end; justify-content:center; gap:0;
+      margin-bottom:0; position:relative; z-index:1;
     }
-    .podio-lugar { display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .podio-lugar { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 8px; }
 
     .podio-avatar {
       border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -128,27 +146,46 @@
     }
     .podio-nome  { font-weight:700; color:#fff; line-height:1.2; }
     .podio-score { font-weight:700; }
-    .podio-base  { border-radius:12px 12px 0 0; display:flex; align-items:center; justify-content:center; font-weight:900; }
+    .podio-base  { border-radius:12px 12px 0 0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:900; gap:2px; }
+    .podio-base-score { font-size:12px; font-weight:700; opacity:.85; letter-spacing:.02em; }
 
-    .podio-1 .podio-avatar { width:82px; height:82px; font-size:38px; background:rgba(255,210,31,.18); border:2px solid var(--ambar); }
-    .podio-1 .podio-nome   { font-size:clamp(20px,3vw,32px); }
-    .podio-1 .podio-score  { font-size:clamp(14px,1.8vw,20px); color:var(--ambar); }
-    .podio-1 .podio-base   { width:180px; height:96px; background:var(--ambar); color:var(--azul-escuro); font-size:30px; }
+    .podio-1 .podio-avatar {
+      width:auto; height:auto; background:none; border:none;
+      font-size:64px; line-height:1;
+      filter: drop-shadow(0 0 8px rgba(255,215,0,.5));
+      animation: troféu-pulse 3s ease-in-out infinite;
+    }
+    @keyframes troféu-pulse {
+      0%,100% { filter: drop-shadow(0 0 6px rgba(255,215,0,.4)); }
+      50%      { filter: drop-shadow(0 0 16px rgba(255,215,0,.75)); }
+    }
+    .podio-1 .podio-nome   { font-size:clamp(20px,2.8vw,36px); text-shadow:0 0 20px rgba(255,215,0,.3); }
+    .podio-1 .podio-score  { font-size:clamp(13px,1.5vw,18px); color:var(--ambar); }
+    .podio-1 .podio-base   { width:180px; height:90px; background:var(--ambar); color:var(--azul-escuro); font-size:26px; box-shadow:0 0 24px rgba(255,215,0,.4); }
 
-    .podio-2 .podio-avatar { width:60px; height:60px; font-size:26px; background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.25); }
-    .podio-2 .podio-nome   { font-size:clamp(16px,2.2vw,24px); }
-    .podio-2 .podio-score  { font-size:clamp(12px,1.5vw,17px); color:rgba(255,255,255,.5); }
-    .podio-2 .podio-base   { width:140px; height:66px; background:rgba(255,255,255,.15); color:rgba(255,255,255,.7); font-size:22px; }
+    .podio-2 .podio-avatar { width:40px; height:40px; font-size:18px; background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.2); }
+    .podio-2 .podio-nome   { font-size:clamp(13px,1.6vw,18px); }
+    .podio-2 .podio-score  { font-size:clamp(10px,1.1vw,13px); color:rgba(255,255,255,.5); }
+    .podio-2 .podio-base   { width:130px; height:68px; background:rgba(255,255,255,.12); color:rgba(255,255,255,.7); font-size:18px; }
 
-    .podio-3 .podio-avatar { width:60px; height:60px; font-size:26px; background:rgba(205,124,47,.12); border:2px solid rgba(205,124,47,.4); }
-    .podio-3 .podio-nome   { font-size:clamp(16px,2.2vw,24px); }
-    .podio-3 .podio-score  { font-size:clamp(12px,1.5vw,17px); color:rgba(205,124,47,.8); }
-    .podio-3 .podio-base   { width:140px; height:50px; background:rgba(205,124,47,.35); color:rgba(255,255,255,.85); font-size:22px; }
+    .podio-3 .podio-avatar { width:40px; height:40px; font-size:18px; background:rgba(205,124,47,.1); border:2px solid rgba(205,124,47,.35); }
+    .podio-3 .podio-nome   { font-size:clamp(13px,1.6vw,18px); }
+    .podio-3 .podio-score  { font-size:clamp(10px,1.1vw,13px); color:rgba(205,124,47,.8); }
+    .podio-3 .podio-base   { width:130px; height:56px; background:rgba(205,124,47,.35); color:rgba(255,255,255,.85); font-size:18px; }
 
     #empate-card { display:none; margin-bottom:32px; position:relative; z-index:1; }
     #empate-card.visivel { display:block; }
     #empate-card p { color:rgba(255,255,255,.7); font-size:clamp(18px,2.5vw,28px); font-weight:700; margin:0; }
 
+
+    /* Logo animada */
+    @keyframes logo-flutuar {
+      0%,100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 12px rgba(255,215,0,.35)); }
+      50%      { transform: translateY(-12px) scale(1.03); filter: drop-shadow(0 0 28px rgba(255,215,0,.65)); }
+    }
+    .logo-animada {
+      animation: logo-flutuar 3.5s ease-in-out infinite;
+    }
 
     /* Lightbox */
     #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.92); align-items:center; justify-content:center; cursor:zoom-out; }
@@ -157,12 +194,6 @@
   </style>
 </head>
 <body>
-  <header class="header">
-    <a href="index.html" class="header-brand">
-      <img src="prefeitura_oriximina.png" alt="Prefeitura de Oriximiná" class="header-logo" />
-      <span class="header-title">Batalha de Prompt</span>
-    </a>
-  </header>
 
   <main>
 
@@ -175,6 +206,7 @@
 
     <!-- TELA 2: Aguardando jogadores se cadastrarem -->
     <div id="tela-aguardando-jogadores" class="tela" style="display:none;">
+      <img src="logo (1).png" alt="Batalha de Prompt" class="logo-animada" style="height:160px;width:auto;object-fit:contain;margin-bottom:20px;" />
       <p id="ag-rodada-label" style="font-size:12px;font-weight:700;color:var(--ambar);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;"></p>
       <h1 class="ag-titulo">Aguardando jogadores</h1>
       <p class="ag-sub">Faça seu cadastro na sua tela e clique em avançar</p>
@@ -202,13 +234,21 @@
       </div>
     </div>
 
-    <!-- TELA 3: Rodada ativa (imagem grande + painel lateral) -->
+    <!-- TELA 3: Rodada ativa -->
     <div id="tela-ativa">
-      <div class="ativa-esq" onclick="abrirLightbox()">
+      <!-- Logo (acima da imagem) -->
+      <div class="ativa-logo-bar">
+        <img src="logo (1).png" alt="Batalha de Prompt" class="logo-animada" style="height:110px;width:auto;object-fit:contain;" />
+      </div>
+
+      <!-- Imagem master -->
+      <div class="ativa-img-wrap" onclick="abrirLightbox()">
         <img id="master-img" src="" alt="Imagem Master" />
       </div>
-      <div class="ativa-dir">
-        <div class="ativa-header">
+
+      <!-- Barra info (meio): rodada + timer -->
+      <div class="ativa-info-bar">
+        <div class="ativa-info-rodada">
           <p id="ativa-rodada-label" class="ativa-rodada-label"></p>
           <p id="ativa-rodada-titulo" class="ativa-rodada-titulo"></p>
         </div>
@@ -216,6 +256,10 @@
           <p class="ativa-timer-label">Tempo restante</p>
           <span id="timer-num">--:--</span>
         </div>
+      </div>
+
+      <!-- Barra jogadores (baixo) -->
+      <div class="ativa-players-bar">
         <div id="ativa-p1" class="ativa-player vazio">
           <div class="ativa-player-avatar">👤</div>
           <div class="ativa-player-info">
@@ -244,29 +288,38 @@
 
   </main>
 
+  <canvas id="confete-canvas"></canvas>
+
   <!-- TELA 4: Pódio / Celebração -->
   <div id="tela-celebracao">
+    <img src="logo (1).png" alt="Batalha de Prompt" style="height:200px;width:auto;margin-bottom:12px;object-fit:contain;" />
     <p class="celeb-pretitulo">Resultado da Rodada</p>
     <h1 class="celeb-titulo">Veja o grande<br><span>vencedor!</span></h1>
 
     <div class="podio" id="podio-wrap" style="display:none;">
       <div class="podio-lugar podio-2">
-        <div class="podio-avatar">🥈</div>
+        <div class="podio-avatar"><i class="bi bi-award-fill" style="color:#9E9E9E;"></i></div>
         <p class="podio-nome" id="podio-2-nome"></p>
-        <p class="podio-score" id="podio-2-score"></p>
-        <div class="podio-base">2º</div>
+        <div class="podio-base">
+          <span>2º</span>
+          <span class="podio-base-score" id="podio-2-score"></span>
+        </div>
       </div>
       <div class="podio-lugar podio-1">
-        <div class="podio-avatar">🏆</div>
+        <div class="podio-avatar"><i class="bi bi-trophy-fill" style="color:#FFD700;"></i></div>
         <p class="podio-nome" id="podio-1-nome"></p>
-        <p class="podio-score" id="podio-1-score"></p>
-        <div class="podio-base">1º</div>
+        <div class="podio-base">
+          <span>1º</span>
+          <span class="podio-base-score" id="podio-1-score"></span>
+        </div>
       </div>
       <div class="podio-lugar podio-3">
-        <div class="podio-avatar">🥉</div>
+        <div class="podio-avatar"><i class="bi bi-award-fill" style="color:#A0522D;"></i></div>
         <p class="podio-nome" id="podio-3-nome"></p>
-        <p class="podio-score" id="podio-3-score"></p>
-        <div class="podio-base">3º</div>
+        <div class="podio-base">
+          <span>3º</span>
+          <span class="podio-base-score" id="podio-3-score"></span>
+        </div>
       </div>
     </div>
 
@@ -280,17 +333,6 @@
     <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
   </div>
 
-  <footer>
-    <div class="footer-esq">
-      <p>Prefeitura Municipal de Oriximiná</p>
-      <p>A transformação não vai parar</p>
-    </div>
-    <div class="footer-dir">
-      <p>SEMEG</p>
-      <p>Secretaria Municipal de Eficiência Governamental</p>
-      <a href="admin/index.html" style="font-size:11px;color:rgba(255,255,255,.25);text-decoration:none;margin-top:4px;display:inline-block;">Admin</a>
-    </div>
-  </footer>
 
   <script src="js/header.js"></script>
   <script type="module">
@@ -299,6 +341,7 @@
 
     let timerInterval = null;
     let CHALLENGE = null;
+    let CURRENT_ROUND = null;
 
     function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
@@ -344,17 +387,106 @@
       const p3 = p3Key ? round[p3Key] : null;
 
       document.getElementById("podio-1-nome").textContent  = p1?.name  || "—";
-      document.getElementById("podio-1-score").textContent = p1?.score  != null ? `${Math.round(p1.score)} pts` : "";
+      document.getElementById("podio-1-score").textContent = p1?.score  != null ? `${Math.round(p1.score)} pts` : "— pts";
       document.getElementById("podio-2-nome").textContent  = p2?.name  || "—";
-      document.getElementById("podio-2-score").textContent = p2?.score  != null ? `${Math.round(p2.score)} pts`  : "";
+      document.getElementById("podio-2-score").textContent = p2?.score  != null ? `${Math.round(p2.score)} pts`  : "— pts";
       document.getElementById("podio-3-nome").textContent  = p3?.name  || "—";
-      document.getElementById("podio-3-score").textContent = p3?.score  != null ? `${Math.round(p3.score)} pts`  : "";
+      document.getElementById("podio-3-score").textContent = p3?.score  != null ? `${Math.round(p3.score)} pts`  : "— pts";
 
       podioWrap.style.display = "flex";
+      lancarConfete();
     }
 
     function ocultarPodio() {
       document.getElementById("tela-celebracao").classList.remove("ativa");
+      pararConfete();
+    }
+
+    // ── Confete ───────────────────────────────────────────────
+    let confeteRAF = null;
+    const CORES = ["#FFD700","#FFE94D","#00B4FF","#7C3AED","#FF4D6D","#00E676","#FF9100","#FFFFFF","#FF007A","#00FFD1"];
+    const GRAVIDADE = 0.18;
+
+    function dispararParticula(canvas, ox, oy) {
+      const angulo = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1;
+      const forca  = 18 + Math.random() * 22;
+      const tipo   = Math.random() < 0.55 ? "rect" : "circle";
+      return {
+        x:   ox, y: oy,
+        w:   6 + Math.random() * 10,
+        h:   9 + Math.random() * 13,
+        cor: CORES[Math.floor(Math.random() * CORES.length)],
+        vx:  Math.cos(angulo) * forca,
+        vy:  Math.sin(angulo) * forca,
+        rot: Math.random() * Math.PI * 2,
+        vr:  (Math.random() - 0.5) * 0.3,
+        tipo,
+        fase: "subindo",
+        op: 1,
+      };
+    }
+
+    function lancarConfete() {
+      const canvas = document.getElementById("confete-canvas");
+      const ctx    = canvas.getContext("2d");
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let todasParticulas = [];
+      let timers = [];
+
+      function disparo() {
+        const cx = canvas.width / 2;
+        const cy = canvas.height + 10;
+        todasParticulas.push(
+          ...Array.from({length: 130}, () => dispararParticula(canvas, cx * 0.15, cy)),
+          ...Array.from({length: 130}, () => dispararParticula(canvas, cx * 1.85, cy)),
+          ...Array.from({length: 80},  () => dispararParticula(canvas, cx, cy)),
+        );
+      }
+
+      disparo();
+      timers.push(setTimeout(disparo, 900));
+      timers.push(setTimeout(disparo, 1800));
+
+      function tick() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let vivas = 0;
+        todasParticulas.forEach(p => {
+          if (p.y > canvas.height + 40 || p.op <= 0) return;
+          vivas++;
+          p.vy  += GRAVIDADE;
+          p.y   += p.vy;
+          p.x   += p.vx;
+          p.vx  *= 0.995;
+          p.rot += p.vr;
+          if (p.y > canvas.height * 0.75) p.op = Math.max(0, p.op - 0.018);
+          ctx.save();
+          ctx.globalAlpha = p.op;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.cor;
+          if (p.tipo === "circle") {
+            ctx.beginPath();
+            ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          }
+          ctx.restore();
+        });
+        if (vivas > 0 || timers.length) confeteRAF = requestAnimationFrame(tick);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      confeteRAF = requestAnimationFrame(tick);
+
+      timers.push(setTimeout(() => { timers.length = 0; }, 1900));
+    }
+
+    function pararConfete() {
+      if (confeteRAF) { cancelAnimationFrame(confeteRAF); confeteRAF = null; }
+      const canvas = document.getElementById("confete-canvas");
+      canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
     }
 
     // ── Render jogador (tela ativa) ───────────────────────────
@@ -394,6 +526,7 @@
 
     onValue(ref(db, "currentRound"), snap => {
       const round = snap.val();
+      CURRENT_ROUND = round;
 
       if (!round) {
         mostrarSomente("tela-sem-rodada");
@@ -458,7 +591,21 @@
           const el = document.getElementById("timer-num");
           el.textContent = `${m}:${s.toString().padStart(2,"0")}`;
           el.className = rem < 30000 ? "vermelho" : rem < 60000 ? "amarelo" : "";
-          if (rem <= 0) clearInterval(timerInterval);
+          if (rem <= 0) {
+            clearInterval(timerInterval);
+            setTimeout(() => {
+              if (document.getElementById("tela-celebracao").classList.contains("ativa")) return;
+              if (!CURRENT_ROUND) return;
+              const slots = ["player1","player2","player3"];
+              const rankings = slots
+                .filter(s => CURRENT_ROUND[s]?.name)
+                .sort((a, b) => {
+                  const d = (CURRENT_ROUND[b]?.score ?? 0) - (CURRENT_ROUND[a]?.score ?? 0);
+                  return d !== 0 ? d : (CURRENT_ROUND[a]?.submittedAt ?? Infinity) - (CURRENT_ROUND[b]?.submittedAt ?? Infinity);
+                });
+              mostrarPodio({ ...CURRENT_ROUND, winner: rankings[0] ?? null, rankings });
+            }, 4000);
+          }
         }
         tick();
         timerInterval = setInterval(tick, 500);
