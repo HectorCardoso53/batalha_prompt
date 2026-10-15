@@ -133,21 +133,10 @@
           <p id="res-master-prompt"></p>
         </div>
 
-        <!-- Adversário -->
+        <!-- Adversários -->
         <div class="card" style="margin-bottom:24px;">
-          <h2 style="font-weight:700;font-size:16px;color:var(--azul-marinho);margin-bottom:16px;">⚔️ Adversário</h2>
-          <div id="oponente-loading" class="oponente-loading">
-            <p>⏳ Aguardando adversário concluir...</p>
-          </div>
-          <div id="oponente-resultado" style="display:none;">
-            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
-              <p id="op-nome" style="font-weight:700;font-size:16px;color:var(--azul-marinho);flex:1;"></p>
-              <span id="op-score-badge" class="score-badge" style="font-size:18px;font-weight:900;"></span>
-            </div>
-            <img id="op-img" src="" alt="Imagem do adversário" class="img-azul" style="margin-bottom:12px;" />
-            <p style="font-size:12px;color:var(--texto-sec);margin-bottom:4px;font-weight:700;">Prompt do adversário:</p>
-            <p id="op-prompt" class="prompt-citado"></p>
-          </div>
+          <h2 style="font-weight:700;font-size:16px;color:var(--azul-marinho);margin-bottom:16px;">⚔️ Adversários</h2>
+          <div id="oponentes-lista"></div>
         </div>
 
         <!-- Banner vencedor -->
@@ -179,7 +168,7 @@
 
     let CHALLENGE  = null;
     let ROUND      = null;
-    let mySlot     = null; // "player1" | "player2"
+    let mySlot     = null; // "player1" | "player2" | "player3"
     let nomeJogador= "";
     let timerInterval = null;
 
@@ -238,9 +227,9 @@
         return;
       }
 
-      // Atualiza adversário no step-result em tempo real
+      // Atualiza adversários no step-result em tempo real
       if (document.getElementById("step-result").classList.contains("ativo") && mySlot) {
-        atualizarOponente();
+        atualizarOponentes();
         atualizarBanner();
       }
     });
@@ -250,7 +239,7 @@
       document.getElementById("game-nome").textContent      = nomeJogador;
       document.getElementById("game-title").textContent     = CHALLENGE.title;
       document.getElementById("game-img").src               = CHALLENGE.masterImage;
-      document.getElementById("game-slot-badge").textContent = mySlot === "player1" ? "Jogador 1" : "Jogador 2";
+      document.getElementById("game-slot-badge").textContent = mySlot === "player1" ? "Jogador 1" : mySlot === "player2" ? "Jogador 2" : "Jogador 3";
       if (ROUND.startedAt) iniciarTimer(ROUND.startedAt, CHALLENGE.timeLimit || 180);
       showStep("step-game");
     }
@@ -284,8 +273,11 @@
       } else if (!round.player2) {
         await set(ref(db, "currentRound/player2"), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
         mySlot = "player2";
+      } else if (!round.player3) {
+        await set(ref(db, "currentRound/player3"), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
+        mySlot = "player3";
       } else {
-        aviso.textContent = "Os dois slots desta rodada já estão ocupados. Aguarde a próxima.";
+        aviso.textContent = "Os três slots desta rodada já estão ocupados. Aguarde a próxima.";
         aviso.style.display = "block";
         btn.disabled = false; btn.textContent = "Entrar no desafio";
         return;
@@ -293,13 +285,23 @@
 
       aviso.style.display = "none";
 
-      if (round.status === "active") {
-        // Rodada já em andamento → vai direto pro jogo
+      // Busca o estado mais recente após salvar o slot
+      const roundAtual = (await get(ref(db, "currentRound"))).val();
+      const todosPreenchidos = roundAtual?.player1 && roundAtual?.player2 && roundAtual?.player3;
+
+      if (todosPreenchidos && roundAtual.status === "waiting") {
+        // Último jogador a entrar — inicia a rodada automaticamente
+        const startedAt = Date.now();
+        await update(ref(db, "currentRound"), { status: "active", startedAt });
         ROUND = (await get(ref(db, "currentRound"))).val();
         entrarNoJogo();
+      } else if (roundAtual.status === "active") {
+        // Rodada já em andamento (entrou depois da auto-iniciação)
+        ROUND = roundAtual;
+        entrarNoJogo();
       } else {
-        // Aguardando admin iniciar
-        document.getElementById("espera-slot").textContent = mySlot === "player1" ? "Jogador 1" : "Jogador 2";
+        // Aguardando os outros jogadores se cadastrarem
+        document.getElementById("espera-slot").textContent = mySlot === "player1" ? "Jogador 1" : mySlot === "player2" ? "Jogador 2" : "Jogador 3";
         document.getElementById("espera-nome").textContent = nomeJogador;
         showStep("step-espera");
       }
@@ -369,15 +371,20 @@
           name: nomeJogador, prompt, score: scoreFinal, ts: Date.now(),
         });
 
-        // 5. Verifica se é o segundo a submeter → define vencedor
+        // 5. Verifica se todos os 3 jogadores enviaram → calcula rankings
         const roundSnap = await get(ref(db, "currentRound"));
         const roundAtual = roundSnap.val();
-        const opSlot = mySlot === "player1" ? "player2" : "player1";
-        const oponente = roundAtual?.[opSlot];
-        if (oponente?.done) {
-          const opScore = oponente.score ?? 0;
-          const winner = scoreFinal > opScore ? mySlot : opScore > scoreFinal ? opSlot : "tie";
-          await update(ref(db, "currentRound"), { winner, status: "done" });
+        const todosEnviaram = roundAtual?.player1?.done && roundAtual?.player2?.done && roundAtual?.player3?.done;
+        if (todosEnviaram) {
+          const slots = ["player1", "player2", "player3"];
+          const rankings = slots.slice().sort((a, b) => {
+            const pa = roundAtual[a], pb = roundAtual[b];
+            const doneA = pa?.done ? 1 : 0, doneB = pb?.done ? 1 : 0;
+            if (doneA !== doneB) return doneB - doneA;
+            return (pb?.score ?? 0) - (pa?.score ?? 0);
+          });
+          const winner = rankings[0];
+          await update(ref(db, "currentRound"), { winner, rankings, status: "done" });
         }
 
         // 6. Mostra resultado
@@ -400,7 +407,7 @@
 
         if (timerInterval) clearInterval(timerInterval);
         showStep("step-result");
-        atualizarOponente();
+        atualizarOponentes();
         atualizarBanner();
 
       } catch (err) {
@@ -411,42 +418,57 @@
       }
     });
 
-    // ── Oponente em tempo real ───────────────────────────────
-    function atualizarOponente() {
+    // ── Oponentes em tempo real ──────────────────────────────
+    function atualizarOponentes() {
       if (!ROUND || !mySlot) return;
-      const opSlot = mySlot === "player1" ? "player2" : "player1";
-      const op = ROUND[opSlot];
-      if (op?.done) {
-        document.getElementById("oponente-loading").style.display = "none";
-        document.getElementById("oponente-resultado").style.display = "block";
-        document.getElementById("op-nome").textContent    = op.name;
-        document.getElementById("op-img").src             = op.generatedImage;
-        document.getElementById("op-prompt").textContent  = op.prompt;
+      const lista = document.getElementById("oponentes-lista");
+      const opSlots = ["player1", "player2", "player3"].filter(s => s !== mySlot);
+
+      lista.innerHTML = opSlots.map(opSlot => {
+        const op = ROUND[opSlot];
+        if (!op) return ""; // slot ainda não ocupado
+        if (!op.done) {
+          return `<div class="oponente-loading" style="margin-bottom:12px;"><p>⏳ ${op.name || "Adversário"} — Aguardando envio...</p></div>`;
+        }
         const s = op.score ?? 0;
-        const badge = document.getElementById("op-score-badge");
-        badge.textContent = `${Math.round(s)}/100`;
-        badge.style.color      = scoreColor(s);
-        badge.style.background = scoreBg(s);
-      } else {
-        document.getElementById("oponente-loading").style.display = "block";
-        document.getElementById("oponente-resultado").style.display = "none";
+        const bgColor  = scoreBg(s);
+        const txtColor = scoreColor(s);
+        let html = `
+          <div style="border:1px solid var(--fundo-secao);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+              <p style="font-weight:700;font-size:15px;color:var(--azul-marinho);flex:1;">${op.name || "—"}</p>
+              <span class="score-badge" style="font-size:16px;font-weight:900;color:${txtColor};background:${bgColor};">${Math.round(s)}/100</span>
+            </div>`;
+        if (op.generatedImage) {
+          html += `<img src="${op.generatedImage}" alt="Imagem do adversário" class="img-azul" style="margin-bottom:10px;" />`;
+        }
+        html += `
+            <p style="font-size:12px;color:var(--texto-sec);margin-bottom:4px;font-weight:700;">Prompt do adversário:</p>
+            <p class="prompt-citado">${op.prompt || ""}</p>
+          </div>`;
+        return html;
+      }).join("");
+
+      if (!lista.innerHTML.trim()) {
+        lista.innerHTML = `<div class="oponente-loading"><p>⏳ Aguardando adversários concluírem...</p></div>`;
       }
     }
 
     function atualizarBanner() {
-      if (!ROUND?.winner || !mySlot) return;
+      if (!ROUND?.rankings || !mySlot) return;
       const banner = document.getElementById("banner-vencedor");
       const txt    = document.getElementById("banner-txt");
       banner.style.display = "block";
-      if (ROUND.winner === "tie") {
-        banner.style.background = "#FEF3C7"; txt.style.color = "#92400E";
-        txt.textContent = "🤝 Empate!";
-      } else if (ROUND.winner === mySlot) {
+      const pos = ROUND.rankings.indexOf(mySlot) + 1;
+      if (pos === 1) {
         banner.style.background = "#D1FAE5"; txt.style.color = "#065F46";
-        txt.textContent = "🏆 Você venceu esta rodada!";
-      } else {
+        txt.textContent = "🏆 Você ficou em 1º lugar!";
+      } else if (pos === 2) {
+        banner.style.background = "#FEF3C7"; txt.style.color = "#92400E";
+        txt.textContent = "🥈 Você ficou em 2º lugar!";
+      } else if (pos === 3) {
         banner.style.background = "#FEE2E2"; txt.style.color = "#991B1B";
-        txt.textContent = "😔 Você perdeu esta rodada. Tente na próxima!";
+        txt.textContent = "🥉 Você ficou em 3º lugar!";
       }
     }
   </script>

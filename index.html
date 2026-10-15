@@ -8,56 +8,152 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
   <style>
     body { background: var(--azul-escuro); }
-    main { flex:1; display:flex; flex-direction:column; background:var(--azul-escuro); padding-top:64px; }
-
+    main { flex:1; display:flex; flex-direction:column; background:var(--azul-escuro); padding-top:64px; min-height:0; }
     .tela { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow:auto; }
 
-    /* ── Tela aguardando ── */
-    #tela-aguardando { text-align:center; color:#fff; }
+    /* ═══════════════════════════════════
+       TELA 1 — Sem rodada
+    ═══════════════════════════════════ */
+    #tela-sem-rodada { text-align:center; color:#fff; }
 
-    /* ── Tela batalha ── */
-    #tela-batalha { width:100%; max-width:1100px; margin:0 auto; gap:20px; }
+    /* ═══════════════════════════════════
+       TELA 2 — Aguardando jogadores
+    ═══════════════════════════════════ */
+    #tela-aguardando-jogadores { text-align:center; }
+    .ag-titulo { color:#fff; font-size:clamp(24px,4vw,44px); font-weight:900; margin-bottom:8px; }
+    .ag-sub    { color:rgba(255,255,255,.45); font-size:clamp(14px,1.8vw,18px); margin-bottom:44px; }
 
-    .batalha-header { text-align:center; }
-    .rodada-label  { color:var(--ambar); font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; }
-    .rodada-titulo { color:#fff; font-size:clamp(16px,2.5vw,28px); font-weight:700; margin-top:4px; }
+    .ag-slots { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; align-items:center; }
+    .ag-slot {
+      background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1);
+      border-radius:20px; padding:32px 40px; min-width:220px; text-align:center;
+      transition:border-color .4s, background .4s;
+    }
+    .ag-slot.conectado { border-color:var(--ambar); background:rgba(255,210,31,.08); }
+    .ag-slot-numero { font-size:11px; font-weight:700; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.1em; margin-bottom:14px; }
+    .ag-slot-icone  { font-size:52px; margin-bottom:14px; display:block; opacity:.25; transition:opacity .4s; }
+    .ag-slot.conectado .ag-slot-icone { opacity:1; }
+    .ag-slot-nome   { color:#fff; font-size:clamp(18px,2.5vw,24px); font-weight:700; min-height:30px; }
+    .ag-slot-status { font-size:13px; color:rgba(255,255,255,.35); margin-top:6px; }
+    .ag-slot.conectado .ag-slot-status { color:#34D399; }
+    .ag-vs { font-size:20px; font-weight:900; color:rgba(255,255,255,.2); padding:0 8px; }
 
-    /* ── Timer ── */
-    #timer-central { text-align:center; padding:10px 0; }
-    #timer-num { font-size:52px; font-weight:900; font-variant-numeric:tabular-nums; color:#fff; transition:color .3s; }
+    /* ═══════════════════════════════════
+       TELA 3 — Rodada ativa
+    ═══════════════════════════════════ */
+    #tela-ativa {
+      display:none; flex:1; min-height:0; width:100%;
+    }
+    #tela-ativa.visivel {
+      display:grid; grid-template-columns:1fr 300px;
+    }
+
+    .ativa-esq {
+      background:#000; display:flex; align-items:center; justify-content:center;
+      overflow:hidden; cursor:zoom-in;
+    }
+    #master-img { width:100%; height:100%; object-fit:contain; display:block; }
+
+    .ativa-dir {
+      background:rgba(255,255,255,.04); border-left:1px solid rgba(255,255,255,.08);
+      display:flex; flex-direction:column; padding:20px 16px; gap:14px; overflow:auto;
+    }
+
+    .ativa-header { padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,.06); }
+    .ativa-rodada-label  { font-size:11px; font-weight:700; color:var(--ambar); text-transform:uppercase; letter-spacing:.1em; }
+    .ativa-rodada-titulo { color:#fff; font-size:15px; font-weight:700; margin-top:2px; line-height:1.3; }
+
+    .ativa-timer {
+      text-align:center; background:rgba(0,0,0,.3); border-radius:14px; padding:14px 10px;
+    }
+    .ativa-timer-label { font-size:10px; font-weight:700; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; }
+    #timer-num { font-size:54px; font-weight:900; font-variant-numeric:tabular-nums; color:#fff; transition:color .3s; line-height:1; display:block; }
     #timer-num.amarelo { color:#FFC107; }
-    #timer-num.vermelho { color:#EF4444; }
+    #timer-num.vermelho { color:#EF4444; animation:timer-pisca .6s ease-in-out infinite; }
+    @keyframes timer-pisca { 0%,100%{opacity:1} 50%{opacity:.45} }
 
-    /* ── Player cards ── */
-    .battle-grid { display:grid; grid-template-columns:1fr 48px 1fr; gap:16px; align-items:start; width:100%; }
-    .vs-sep { display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; color:var(--ambar); padding-top:40px; }
+    .ativa-player {
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+      border-radius:12px; padding:12px 14px;
+      display:flex; align-items:center; gap:10px;
+      transition:border-color .3s, background .3s;
+    }
+    .ativa-player.enviou { border-color:#34D399; background:rgba(52,211,153,.08); }
+    .ativa-player.vazio  { opacity:.35; }
+    .ativa-player-avatar {
+      width:38px; height:38px; border-radius:50%;
+      background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center;
+      font-size:16px; flex-shrink:0; color:rgba(255,255,255,.5);
+    }
+    .ativa-player.enviou .ativa-player-avatar { background:rgba(52,211,153,.2); color:#34D399; font-weight:900; }
+    .ativa-player-info { flex:1; min-width:0; }
+    .ativa-player-nome   { color:#fff; font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ativa-player-status { font-size:12px; color:rgba(255,255,255,.4); margin-top:2px; }
+    .ativa-player.enviou .ativa-player-status { color:#34D399; }
+    .ativa-vs { text-align:center; font-size:11px; font-weight:900; color:rgba(255,255,255,.15); letter-spacing:.15em; }
 
-    .p-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:20px; }
-    .p-card.vencedor { border-color:var(--ambar); background:rgba(255,210,31,.12); }
-    .p-card-label { font-size:11px; font-weight:700; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
-    .p-card-nome  { color:#fff; font-weight:700; font-size:18px; margin-bottom:8px; }
-    .p-card-status { font-size:13px; color:rgba(255,255,255,.5); }
-    .p-card-status.done { color:#34D399; }
-    .p-card-img { width:100%; border-radius:10px; object-fit:contain; display:block; margin:12px 0; max-height:280px; }
-    .p-card-score { font-size:38px; font-weight:900; margin:4px 0; }
-    .p-card-prompt { font-size:12px; color:rgba(255,255,255,.55); line-height:1.5; font-style:italic; margin-top:8px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-    .vencedor-badge { display:inline-block; background:var(--ambar); color:var(--azul-escuro); font-size:11px; font-weight:900; padding:3px 12px; border-radius:99px; margin-bottom:8px; }
+    /* ═══════════════════════════════════
+       TELA 4 — Pódio / Celebração
+    ═══════════════════════════════════ */
+    #tela-celebracao {
+      display:none; position:fixed; inset:0; z-index:100;
+      background:var(--azul-escuro);
+      flex-direction:column; align-items:center; justify-content:center;
+      text-align:center; padding:32px; overflow:hidden;
+    }
+    #tela-celebracao.ativa { display:flex; }
 
-    .slot-vazio { text-align:center; padding:40px 20px; color:rgba(255,255,255,.25); }
-    .slot-vazio i { font-size:32px; display:block; margin-bottom:8px; }
+    .celeb-pretitulo {
+      font-size:clamp(11px,1.2vw,14px); font-weight:700; color:var(--ambar);
+      text-transform:uppercase; letter-spacing:.15em; margin-bottom:8px;
+      position:relative; z-index:1;
+    }
+    .celeb-titulo {
+      color:#fff; font-size:clamp(26px,4vw,48px); font-weight:900;
+      line-height:1.15; margin-bottom:32px;
+      position:relative; z-index:1;
+    }
+    .celeb-titulo span { color:var(--ambar); }
 
-    /* ── Reveal do prompt ── */
-    #prompt-reveal { background:rgba(255,255,255,.05); border-radius:12px; padding:16px 20px; border-left:3px solid var(--ambar); width:100%; }
-    #prompt-reveal-label { font-size:11px; font-weight:700; color:var(--ambar); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px; }
-    #prompt-reveal-txt { font-size:14px; color:rgba(255,255,255,.8); line-height:1.6; }
+    /* Pódio */
+    .podio {
+      display:flex; align-items:flex-end; justify-content:center; gap:12px;
+      margin-bottom:32px; position:relative; z-index:1;
+    }
+    .podio-lugar { display:flex; flex-direction:column; align-items:center; gap:8px; }
 
-    /* ── Imagem master (estado ativo) ── */
-    #master-wrap { border-radius:12px; overflow:hidden; border:2px solid var(--ambar); width:100%; max-height:300px; cursor:zoom-in; }
-    #master-wrap img { width:100%; height:100%; object-fit:contain; display:block; max-height:300px; }
+    .podio-avatar {
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-weight:900; flex-shrink:0;
+    }
+    .podio-nome  { font-weight:700; color:#fff; line-height:1.2; }
+    .podio-score { font-weight:700; }
+    .podio-base  { border-radius:12px 12px 0 0; display:flex; align-items:center; justify-content:center; font-weight:900; }
 
+    .podio-1 .podio-avatar { width:82px; height:82px; font-size:38px; background:rgba(255,210,31,.18); border:2px solid var(--ambar); }
+    .podio-1 .podio-nome   { font-size:clamp(20px,3vw,32px); }
+    .podio-1 .podio-score  { font-size:clamp(14px,1.8vw,20px); color:var(--ambar); }
+    .podio-1 .podio-base   { width:180px; height:96px; background:var(--ambar); color:var(--azul-escuro); font-size:30px; }
+
+    .podio-2 .podio-avatar { width:60px; height:60px; font-size:26px; background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.25); }
+    .podio-2 .podio-nome   { font-size:clamp(16px,2.2vw,24px); }
+    .podio-2 .podio-score  { font-size:clamp(12px,1.5vw,17px); color:rgba(255,255,255,.5); }
+    .podio-2 .podio-base   { width:140px; height:66px; background:rgba(255,255,255,.15); color:rgba(255,255,255,.7); font-size:22px; }
+
+    .podio-3 .podio-avatar { width:60px; height:60px; font-size:26px; background:rgba(205,124,47,.12); border:2px solid rgba(205,124,47,.4); }
+    .podio-3 .podio-nome   { font-size:clamp(16px,2.2vw,24px); }
+    .podio-3 .podio-score  { font-size:clamp(12px,1.5vw,17px); color:rgba(205,124,47,.8); }
+    .podio-3 .podio-base   { width:140px; height:50px; background:rgba(205,124,47,.35); color:rgba(255,255,255,.85); font-size:22px; }
+
+    #empate-card { display:none; margin-bottom:32px; position:relative; z-index:1; }
+    #empate-card.visivel { display:block; }
+    #empate-card p { color:rgba(255,255,255,.7); font-size:clamp(18px,2.5vw,28px); font-weight:700; margin:0; }
+
+
+    /* Lightbox */
     #lightbox { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.92); align-items:center; justify-content:center; cursor:zoom-out; }
     #lightbox.open { display:flex; }
-    #lightbox img { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; }
+    #lightbox img  { max-width:95vw; max-height:95vh; object-fit:contain; border-radius:8px; }
   </style>
 </head>
 <body>
@@ -69,57 +165,116 @@
   </header>
 
   <main>
-    <!-- Aguardando -->
-    <div id="tela-aguardando" class="tela">
+
+    <!-- TELA 1: Sem rodada ativa -->
+    <div id="tela-sem-rodada" class="tela">
       <i class="bi bi-hourglass" style="font-size:52px;color:var(--ambar);display:block;margin-bottom:16px;"></i>
-      <h2 style="font-weight:700;font-size:22px;margin-bottom:8px;color:#fff;">Aguardando rodada...</h2>
+      <h2 style="font-weight:700;font-size:22px;margin-bottom:8px;color:#fff;">Aguardando próxima rodada...</h2>
       <p style="color:rgba(255,255,255,.45);font-size:15px;">O admin ainda não iniciou nenhuma rodada.</p>
     </div>
 
-    <!-- Batalha -->
-    <div id="tela-batalha" class="tela" style="display:none;">
-
-      <!-- Cabeçalho -->
-      <div class="batalha-header" style="width:100%;max-width:1100px;">
-        <p id="rodada-label" class="rodada-label"></p>
-        <h1 id="rodada-titulo" class="rodada-titulo"></h1>
-      </div>
-
-      <!-- Timer -->
-      <div id="timer-central" style="display:none;">
-        <span id="timer-num">--:--</span>
-      </div>
-
-      <!-- Estado: aguardando / ativo -->
-      <div id="estado-jogo" style="display:none;width:100%;max-width:1100px;">
-        <!-- Imagem master (visível durante a rodada) -->
-        <div id="master-wrap" style="margin-bottom:20px;display:none;" onclick="abrirLightbox()">
-          <img id="master-img" src="" alt="Imagem Master" />
+    <!-- TELA 2: Aguardando jogadores se cadastrarem -->
+    <div id="tela-aguardando-jogadores" class="tela" style="display:none;">
+      <p id="ag-rodada-label" style="font-size:12px;font-weight:700;color:var(--ambar);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;"></p>
+      <h1 class="ag-titulo">Aguardando jogadores</h1>
+      <p class="ag-sub">Faça seu cadastro na sua tela e clique em avançar</p>
+      <div class="ag-slots">
+        <div class="ag-slot" id="ag-slot-1">
+          <p class="ag-slot-numero">Jogador 1</p>
+          <span class="ag-slot-icone">👤</span>
+          <p class="ag-slot-nome" id="ag-p1-nome">—</p>
+          <p class="ag-slot-status" id="ag-p1-status">Aguardando cadastro</p>
         </div>
-        <!-- Cards dos jogadores -->
-        <div class="battle-grid">
-          <div id="card-p1" class="p-card"></div>
-          <div class="vs-sep">VS</div>
-          <div id="card-p2" class="p-card"></div>
+        <div class="ag-vs">VS</div>
+        <div class="ag-slot" id="ag-slot-2">
+          <p class="ag-slot-numero">Jogador 2</p>
+          <span class="ag-slot-icone">👤</span>
+          <p class="ag-slot-nome" id="ag-p2-nome">—</p>
+          <p class="ag-slot-status" id="ag-p2-status">Aguardando cadastro</p>
         </div>
-      </div>
-
-      <!-- Estado: resultado -->
-      <div id="estado-resultado" style="display:none;width:100%;max-width:1100px;">
-        <div class="battle-grid" style="margin-bottom:20px;">
-          <div id="res-p1" class="p-card"></div>
-          <div class="vs-sep">VS</div>
-          <div id="res-p2" class="p-card"></div>
-        </div>
-        <!-- Prompt reveal -->
-        <div id="prompt-reveal">
-          <p id="prompt-reveal-label" class="prompt-reveal-label">Prompt Original</p>
-          <p id="prompt-reveal-txt" class="prompt-reveal-txt"></p>
+        <div class="ag-vs">VS</div>
+        <div class="ag-slot" id="ag-slot-3">
+          <p class="ag-slot-numero">Jogador 3</p>
+          <span class="ag-slot-icone">👤</span>
+          <p class="ag-slot-nome" id="ag-p3-nome">—</p>
+          <p class="ag-slot-status" id="ag-p3-status">Aguardando cadastro</p>
         </div>
       </div>
-
     </div>
+
+    <!-- TELA 3: Rodada ativa (imagem grande + painel lateral) -->
+    <div id="tela-ativa">
+      <div class="ativa-esq" onclick="abrirLightbox()">
+        <img id="master-img" src="" alt="Imagem Master" />
+      </div>
+      <div class="ativa-dir">
+        <div class="ativa-header">
+          <p id="ativa-rodada-label" class="ativa-rodada-label"></p>
+          <p id="ativa-rodada-titulo" class="ativa-rodada-titulo"></p>
+        </div>
+        <div class="ativa-timer">
+          <p class="ativa-timer-label">Tempo restante</p>
+          <span id="timer-num">--:--</span>
+        </div>
+        <div id="ativa-p1" class="ativa-player vazio">
+          <div class="ativa-player-avatar">👤</div>
+          <div class="ativa-player-info">
+            <p class="ativa-player-nome">Aguardando...</p>
+            <p class="ativa-player-status">—</p>
+          </div>
+        </div>
+        <div class="ativa-vs">— VS —</div>
+        <div id="ativa-p2" class="ativa-player vazio">
+          <div class="ativa-player-avatar">👤</div>
+          <div class="ativa-player-info">
+            <p class="ativa-player-nome">Aguardando...</p>
+            <p class="ativa-player-status">—</p>
+          </div>
+        </div>
+        <div class="ativa-vs">— VS —</div>
+        <div id="ativa-p3" class="ativa-player vazio">
+          <div class="ativa-player-avatar">👤</div>
+          <div class="ativa-player-info">
+            <p class="ativa-player-nome">Aguardando...</p>
+            <p class="ativa-player-status">—</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
+
+  <!-- TELA 4: Pódio / Celebração -->
+  <div id="tela-celebracao">
+    <p class="celeb-pretitulo">Resultado da Rodada</p>
+    <h1 class="celeb-titulo">Veja o grande<br><span>vencedor!</span></h1>
+
+    <div class="podio" id="podio-wrap" style="display:none;">
+      <div class="podio-lugar podio-2">
+        <div class="podio-avatar">🥈</div>
+        <p class="podio-nome" id="podio-2-nome"></p>
+        <p class="podio-score" id="podio-2-score"></p>
+        <div class="podio-base">2º</div>
+      </div>
+      <div class="podio-lugar podio-1">
+        <div class="podio-avatar">🏆</div>
+        <p class="podio-nome" id="podio-1-nome"></p>
+        <p class="podio-score" id="podio-1-score"></p>
+        <div class="podio-base">1º</div>
+      </div>
+      <div class="podio-lugar podio-3">
+        <div class="podio-avatar">🥉</div>
+        <p class="podio-nome" id="podio-3-nome"></p>
+        <p class="podio-score" id="podio-3-score"></p>
+        <div class="podio-base">3º</div>
+      </div>
+    </div>
+
+    <div id="empate-card">
+      <p>🤝 Empate entre os jogadores!</p>
+    </div>
+
+  </div>
 
   <div id="lightbox" onclick="fecharLightbox()">
     <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
@@ -146,100 +301,167 @@
     let CHALLENGE = null;
 
     function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-    function scoreColor(s) { return s>=70?"#34D399":s>=40?"#FCD34D":"#F87171"; }
 
+    // ── Controle de telas ─────────────────────────────────────
+    const TELAS = ["tela-sem-rodada","tela-aguardando-jogadores","tela-ativa"];
+    function mostrarSomente(id) {
+      TELAS.forEach(t => {
+        const el = document.getElementById(t);
+        if (t === "tela-ativa") {
+          el.classList.toggle("visivel", t === id);
+        } else {
+          el.style.display = (t === id) ? "flex" : "none";
+        }
+      });
+    }
+
+    // ── Pódio ──────────────────────────────────────────────────
+    function mostrarPodio(round) {
+      mostrarSomente(null);
+      document.getElementById("tela-celebracao").classList.add("ativa");
+
+      const podioWrap = document.getElementById("podio-wrap");
+      const empateCard = document.getElementById("empate-card");
+      podioWrap.style.display = "none";
+      empateCard.classList.remove("visivel");
+
+      if (!round?.winner) return;
+
+      // Usa rankings se disponível, senão fallback compatível com 2 jogadores
+      const rankings = round.rankings || (round.winner === "tie" ? null : [round.winner, round.winner === "player1" ? "player2" : "player1"]);
+
+      if (!rankings) {
+        empateCard.classList.add("visivel");
+        return;
+      }
+
+      const p1Key = rankings[0];
+      const p2Key = rankings[1];
+      const p3Key = rankings[2];
+
+      const p1 = p1Key ? round[p1Key] : null;
+      const p2 = p2Key ? round[p2Key] : null;
+      const p3 = p3Key ? round[p3Key] : null;
+
+      document.getElementById("podio-1-nome").textContent  = p1?.name  || "—";
+      document.getElementById("podio-1-score").textContent = p1?.score  != null ? `${Math.round(p1.score)} pts` : "";
+      document.getElementById("podio-2-nome").textContent  = p2?.name  || "—";
+      document.getElementById("podio-2-score").textContent = p2?.score  != null ? `${Math.round(p2.score)} pts`  : "";
+      document.getElementById("podio-3-nome").textContent  = p3?.name  || "—";
+      document.getElementById("podio-3-score").textContent = p3?.score  != null ? `${Math.round(p3.score)} pts`  : "";
+
+      podioWrap.style.display = "flex";
+    }
+
+    function ocultarPodio() {
+      document.getElementById("tela-celebracao").classList.remove("ativa");
+    }
+
+    // ── Render jogador (tela ativa) ───────────────────────────
+    function renderAtivaPlayer(elId, player) {
+      const el = document.getElementById(elId);
+      if (!player) {
+        el.className = "ativa-player vazio";
+        el.innerHTML = `<div class="ativa-player-avatar">👤</div><div class="ativa-player-info"><p class="ativa-player-nome">Aguardando...</p><p class="ativa-player-status">—</p></div>`;
+        return;
+      }
+      const enviou = !!player.done;
+      el.className = `ativa-player${enviou ? " enviou" : ""}`;
+      el.innerHTML = `
+        <div class="ativa-player-avatar">${enviou ? "✓" : "⏳"}</div>
+        <div class="ativa-player-info">
+          <p class="ativa-player-nome">${esc(player.name)}</p>
+          <p class="ativa-player-status">${enviou ? "Enviou o prompt" : "Enviando prompt..."}</p>
+        </div>
+      `;
+    }
+
+    // ── Render slots da espera ────────────────────────────────
+    function renderAgSlot(slotEl, nomeEl, statusEl, player) {
+      if (player?.name) {
+        slotEl.classList.add("conectado");
+        nomeEl.textContent   = player.name;
+        statusEl.textContent = "✓ Cadastrado";
+      } else {
+        slotEl.classList.remove("conectado");
+        nomeEl.textContent   = "—";
+        statusEl.textContent = "Aguardando cadastro";
+      }
+    }
+
+    // ── Firebase ───────────────────────────────────────────────
     onValue(ref(db, "challenge"), snap => { CHALLENGE = snap.val(); });
-
-    function renderSlot(el, player, slot) {
-      if (!player) {
-        el.innerHTML = `<div class="slot-vazio"><i class="bi bi-person-circle"></i><p>Aguardando Jogador ${slot === "player1" ? "1" : "2"}...</p></div>`;
-        return;
-      }
-      el.innerHTML = `
-        <p class="p-card-label">Jogador ${slot === "player1" ? "1" : "2"}</p>
-        <p class="p-card-nome">${esc(player.name)}</p>
-        <p class="p-card-status${player.done ? " done" : ""}">${player.done ? "✓ Enviou" : "⏳ Jogando..."}</p>
-      `;
-    }
-
-    function renderResultado(el, player, slot, winner) {
-      if (!player) {
-        el.innerHTML = `<div class="slot-vazio"><i class="bi bi-dash-circle"></i><p>Não participou</p></div>`;
-        return;
-      }
-      const isWin = winner === slot;
-      if (isWin) el.classList.add("vencedor"); else el.classList.remove("vencedor");
-
-      const score = player.score ?? 0;
-      el.innerHTML = `
-        ${isWin ? '<span class="vencedor-badge">🏆 VENCEDOR</span>' : ""}
-        <p class="p-card-label">Jogador ${slot === "player1" ? "1" : "2"}</p>
-        <p class="p-card-nome">${esc(player.name)}</p>
-        ${player.generatedImage ? `<img src="${esc(player.generatedImage)}" class="p-card-img" />` : ""}
-        <p class="p-card-score" style="color:${scoreColor(score)}">${Math.round(score)}<span style="font-size:18px;color:rgba(255,255,255,.4)">/100</span></p>
-        ${player.prompt ? `<p class="p-card-prompt">"${esc(player.prompt)}"</p>` : ""}
-      `;
-    }
 
     onValue(ref(db, "currentRound"), snap => {
       const round = snap.val();
 
       if (!round) {
-        document.getElementById("tela-aguardando").style.display = "flex";
-        document.getElementById("tela-batalha").style.display = "none";
+        mostrarSomente("tela-sem-rodada");
+        ocultarPodio();
         if (timerInterval) clearInterval(timerInterval);
         return;
       }
 
-      document.getElementById("tela-aguardando").style.display = "none";
-      document.getElementById("tela-batalha").style.display = "flex";
-      document.getElementById("rodada-label").textContent = `Rodada ${round.number}`;
-      document.getElementById("rodada-titulo").textContent = CHALLENGE?.title || "";
-
-      const isDone = round.status === "done";
-      document.getElementById("estado-jogo").style.display = isDone ? "none" : "block";
-      document.getElementById("estado-resultado").style.display = isDone ? "block" : "none";
-
-      if (isDone) {
-        // Reveal dos resultados
-        renderResultado(document.getElementById("res-p1"), round.player1, "player1", round.winner);
-        renderResultado(document.getElementById("res-p2"), round.player2, "player2", round.winner);
-        document.getElementById("prompt-reveal-txt").textContent = CHALLENGE?.masterPrompt || "";
+      if (round.status === "done") {
+        mostrarPodio(round);
         if (timerInterval) clearInterval(timerInterval);
-        document.getElementById("timer-central").style.display = "none";
-      } else {
-        // Jogo em andamento
-        const masterImg = document.getElementById("master-wrap");
-        if (CHALLENGE?.masterImage && round.status === "active") {
-          document.getElementById("master-img").src = CHALLENGE.masterImage;
-          masterImg.style.display = "block";
-        } else {
-          masterImg.style.display = "none";
-        }
+        return;
+      }
 
-        renderSlot(document.getElementById("card-p1"), round.player1, "player1");
-        renderSlot(document.getElementById("card-p2"), round.player2, "player2");
+      ocultarPodio();
 
-        // Timer
-        if (round.status === "active" && round.startedAt && CHALLENGE?.timeLimit) {
-          document.getElementById("timer-central").style.display = "block";
-          if (timerInterval) clearInterval(timerInterval);
-          const end = round.startedAt + CHALLENGE.timeLimit * 1000;
-          function tick() {
-            const rem = Math.max(0, end - Date.now());
-            const m = Math.floor(rem / 60000);
-            const s = Math.floor((rem % 60000) / 1000);
-            const el = document.getElementById("timer-num");
-            el.textContent = `${m}:${s.toString().padStart(2,"0")}`;
-            el.className = rem < 30000 ? "vermelho" : rem < 60000 ? "amarelo" : "";
-            if (rem <= 0) clearInterval(timerInterval);
-          }
-          tick();
-          timerInterval = setInterval(tick, 500);
-        } else {
-          document.getElementById("timer-central").style.display = "none";
-          if (timerInterval) clearInterval(timerInterval);
+      if (round.status === "waiting") {
+        mostrarSomente("tela-aguardando-jogadores");
+        document.getElementById("ag-rodada-label").textContent = `Rodada ${round.number}`;
+        renderAgSlot(
+          document.getElementById("ag-slot-1"),
+          document.getElementById("ag-p1-nome"),
+          document.getElementById("ag-p1-status"),
+          round.player1
+        );
+        renderAgSlot(
+          document.getElementById("ag-slot-2"),
+          document.getElementById("ag-p2-nome"),
+          document.getElementById("ag-p2-status"),
+          round.player2
+        );
+        renderAgSlot(
+          document.getElementById("ag-slot-3"),
+          document.getElementById("ag-p3-nome"),
+          document.getElementById("ag-p3-status"),
+          round.player3
+        );
+        if (timerInterval) clearInterval(timerInterval);
+        return;
+      }
+
+      // status === "active"
+      mostrarSomente("tela-ativa");
+      document.getElementById("ativa-rodada-label").textContent  = `Rodada ${round.number}`;
+      document.getElementById("ativa-rodada-titulo").textContent = CHALLENGE?.title || "";
+
+      if (CHALLENGE?.masterImage) {
+        document.getElementById("master-img").src = CHALLENGE.masterImage;
+      }
+
+      renderAtivaPlayer("ativa-p1", round.player1);
+      renderAtivaPlayer("ativa-p2", round.player2);
+      renderAtivaPlayer("ativa-p3", round.player3);
+
+      if (round.startedAt && CHALLENGE?.timeLimit) {
+        if (timerInterval) clearInterval(timerInterval);
+        const end = round.startedAt + CHALLENGE.timeLimit * 1000;
+        function tick() {
+          const rem = Math.max(0, end - Date.now());
+          const m = Math.floor(rem / 60000);
+          const s = Math.floor((rem % 60000) / 1000);
+          const el = document.getElementById("timer-num");
+          el.textContent = `${m}:${s.toString().padStart(2,"0")}`;
+          el.className = rem < 30000 ? "vermelho" : rem < 60000 ? "amarelo" : "";
+          if (rem <= 0) clearInterval(timerInterval);
         }
+        tick();
+        timerInterval = setInterval(tick, 500);
       }
     });
 
