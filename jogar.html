@@ -221,10 +221,16 @@
     onValue(ref(db, "currentRound"), snap => {
       ROUND = snap.val();
 
-      // Atualiza step-espera → step-game quando admin inicia
+      // Espera → Jogo: rodada ficou ativa
       if (document.getElementById("step-espera").classList.contains("ativo") && ROUND?.status === "active") {
         entrarNoJogo();
         return;
+      }
+
+      // Recuperação do timer: entrou no jogo mas startedAt chegou numa snapshot posterior
+      if (document.getElementById("step-game").classList.contains("ativo") &&
+          ROUND?.status === "active" && ROUND?.startedAt && !timerInterval) {
+        iniciarTimer(ROUND.startedAt, CHALLENGE?.timeLimit || 180);
       }
 
       // Atualiza adversários no step-result em tempo real
