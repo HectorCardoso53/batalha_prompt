@@ -193,7 +193,6 @@
     let mySlot     = null; // "player1" | "player2" | "player3"
     let nomeJogador= "";
     let timerInterval = null;
-    let closeTimeout  = null; // timeout do encerramento de aba — deve ser cancelado se o jogador entrar numa nova rodada
     let initialized = false;
 
     const SLOT_LABELS = { player1:"Jogador 1", player2:"Jogador 2", player3:"Jogador 3" };
@@ -231,10 +230,6 @@
           document.getElementById("inp-prompt").disabled = true;
           document.getElementById("btn-prompt").disabled = true;
           document.getElementById("btn-prompt").textContent = "Tempo esgotado";
-          closeTimeout = setTimeout(() => {
-            window.close();
-            setTimeout(() => window.location.replace("index.html"), 800);
-          }, 2000);
         }
       }
       tick();
@@ -359,9 +354,6 @@
       nomeJogador = document.getElementById("inp-nome").value.trim();
       btn.disabled = true; btn.textContent = "Entrando...";
       aviso.style.display = "none";
-
-      // Cancela qualquer timeout de encerramento de rodada anterior
-      if (closeTimeout) { clearTimeout(closeTimeout); closeTimeout = null; }
 
       try {
         const roundSnap = await get(ref(db, "currentRound"));
