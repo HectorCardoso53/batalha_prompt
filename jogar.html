@@ -186,7 +186,7 @@
   <script src="js/header.js"></script>
   <script type="module">
     import { db } from "./js/app.js";
-    import { ref, onValue, get, set, update } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+    import { ref, onValue, get, set, update, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
     let CHALLENGE  = null;
     let ROUND      = null;
@@ -360,53 +360,54 @@
       aviso.style.display = "none";
 
       try {
-        const roundSnap = await get(ref(db, "currentRound"));
-        const round = roundSnap.val();
-
-        if (!round || round.status === "done") {
-          aviso.textContent = "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
-          aviso.style.display = "block";
-          btn.disabled = false; btn.textContent = "Entrar no desafio";
-          return;
-        }
-
-        // Reconexão: mesmo nome já está num slot?
-        const slots = ["player1", "player2", "player3"];
-        const slotReconexao = slots.find(s => round[s]?.name === nomeJogador);
-        if (slotReconexao) {
-          mySlot = slotReconexao;
-          ROUND  = round;
-          if (round.status === "active") { entrarNoJogo(); return; }
-          document.getElementById("espera-slot").textContent = mySlot === "player1" ? "Jogador 1" : mySlot === "player2" ? "Jogador 2" : "Jogador 3";
-          document.getElementById("espera-nome").textContent = nomeJogador;
-          showStep("step-espera");
-          return;
-        }
-
-        // Tenta ocupar um slot livre
         let slotEscolhido = null;
-        if (!round.player1)      slotEscolhido = "player1";
-        else if (!round.player2) slotEscolhido = "player2";
-        else if (!round.player3) slotEscolhido = "player3";
-        else {
-          aviso.textContent = "Os três slots desta rodada já estão ocupados. Aguarde a próxima.";
+        let roundFinal    = null;
+        let reconexao     = false;
+
+        // Transação atômica: lê e reserva o slot em uma única operação no servidor
+        // Isso evita race condition quando dois jogadores entram ao mesmo tempo
+        const { committed, snapshot } = await runTransaction(ref(db, "currentRound"), (round) => {
+          if (!round || round.status === "done") return; // aborta — sem rodada válida
+
+          const slots = ["player1", "player2", "player3"];
+
+          // Reconexão: mesmo nome já está num slot
+          const existing = slots.find(s => round[s]?.name === nomeJogador);
+          if (existing) {
+            slotEscolhido = existing;
+            reconexao = true;
+            return round; // sem alteração, só lê
+          }
+
+          // Ocupa o primeiro slot livre
+          const livre = slots.find(s => !round[s]);
+          if (!livre) return; // aborta — todos ocupados
+
+          slotEscolhido = livre;
+          round[livre] = { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null };
+          return round;
+        });
+
+        roundFinal = snapshot.val();
+
+        if (!committed || !slotEscolhido) {
+          if (!roundFinal || roundFinal.status === "done") {
+            aviso.textContent = "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
+          } else {
+            aviso.textContent = "Os três slots desta rodada já estão ocupados. Aguarde a próxima.";
+          }
           aviso.style.display = "block";
           btn.disabled = false; btn.textContent = "Entrar no desafio";
           return;
         }
 
-        mySlot = slotEscolhido; // define ANTES do await para que onValue tenha acesso durante a escrita
+        mySlot = slotEscolhido;
+        ROUND  = roundFinal;
         salvarSessao();
-        await set(ref(db, `currentRound/${slotEscolhido}`), { name: nomeJogador, done: false, prompt: null, generatedImage: null, score: null });
 
-        // Se a rodada já ficou ativa durante o await, entra direto
-        if (ROUND?.status === "active") {
-          entrarNoJogo();
-          return;
-        }
+        if (roundFinal.status === "active") { entrarNoJogo(); return; }
 
-        // Aguarda o admin clicar em Iniciar Rodada
-        document.getElementById("espera-slot").textContent = mySlot === "player1" ? "Jogador 1" : mySlot === "player2" ? "Jogador 2" : "Jogador 3";
+        document.getElementById("espera-slot").textContent = SLOT_LABELS[mySlot];
         document.getElementById("espera-nome").textContent = nomeJogador;
         showStep("step-espera");
       } catch (err) {
