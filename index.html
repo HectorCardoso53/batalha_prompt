@@ -388,11 +388,6 @@
 
     function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-    // Tenta desmutar o vídeo assim que o autoplay começar
-    document.getElementById("video-aguardando").addEventListener("playing", function() {
-      this.muted = false;
-    }, { once: true });
-
     // ── Controle de telas ─────────────────────────────────────
     const TELAS = ["tela-sem-rodada","tela-aguardando-jogadores","tela-ativa"];
     function mostrarSomente(id) {
