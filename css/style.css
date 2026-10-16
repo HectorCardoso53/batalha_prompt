@@ -24,16 +24,12 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
-  background: var(--fundo);
+  background: url('../img/fundo.png') center center / cover no-repeat fixed;
   color: var(--texto);
   line-height: 1.6;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-image:
-    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(0,100,255,.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(124,58,237,.16) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 30% at 60% 40%, rgba(0,180,255,.08) 0%, transparent 50%);
 }
 
 :focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; }
@@ -158,25 +154,24 @@ footer {
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
 .btn-primary {
-  background: linear-gradient(135deg, #FFD700 0%, #FFE94D 100%);
-  color: var(--azul-escuro);
-  box-shadow: 0 4px 18px rgba(255,215,0,.45);
+  background: linear-gradient(135deg, #FF2D78 0%, #00B4FF 100%);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(255,45,120,.4);
 }
 .btn-primary:hover {
-  box-shadow: 0 8px 28px rgba(255,215,0,.6);
-  background: linear-gradient(135deg, #FFE033 0%, #FFF080 100%);
+  background: linear-gradient(135deg, #ff4d8e 0%, #33c2ff 100%);
+  box-shadow: 0 8px 28px rgba(255,45,120,.55);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #071240 0%, #0D1F6B 100%);
-  color: var(--texto-claro);
-  border: 1px solid rgba(0,180,255,.25);
-  box-shadow: 0 4px 16px rgba(4,9,31,.3);
+  background: linear-gradient(135deg, #FF2D78 0%, #00B4FF 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 16px rgba(255,45,120,.35);
 }
 .btn-secondary:hover {
-  background: linear-gradient(135deg, #0D1F6B 0%, #1730A0 100%);
-  border-color: rgba(0,180,255,.5);
-  box-shadow: 0 4px 20px rgba(0,100,255,.3);
+  background: linear-gradient(135deg, #ff4d8e 0%, #33c2ff 100%);
+  box-shadow: 0 6px 24px rgba(255,45,120,.5);
 }
 
 .btn-danger { background: #FEE2E2; color: #DC2626; box-shadow: none; }
@@ -194,7 +189,7 @@ footer {
 }
 .secao-traco {
   width: 60px; height: 4px;
-  background: linear-gradient(90deg, var(--ambar) 0%, var(--azul-ceu) 100%);
+  background: linear-gradient(90deg, #FF2D78 0%, #00B4FF 100%);
   border-radius: 2px;
   margin-top: 8px;
 }

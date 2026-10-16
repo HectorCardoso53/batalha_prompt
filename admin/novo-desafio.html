@@ -4,27 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Novo Desafio — Batalha de Prompt</title>
-  <link rel="icon" href="../logo.png" />
+  <link rel="icon" href="../img/logo.png" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+  <style>
+    .back-link { color: rgba(255,255,255,.75); }
+    .back-link:hover { color: #fff; }
+    .secao-titulo { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.3); }
+    .label-grad {
+      display:block; font-weight:700; font-size:13px; margin-bottom:6px;
+      background: linear-gradient(135deg,#FF2D78,#00B4FF);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+  </style>
 </head>
 <body>
-  <header class="header">
-    <img src="../logo.png" alt="Batalha de Prompt" class="header-banner" />
-    <nav>
-      <div class="dropdown" id="dd">
-        <button class="btn-admin" id="ddBtn">Admin <span class="arrow">▾</span></button>
-        <div class="dropdown-menu" id="ddMenu">
-          <a href="index.html">Painel Admin</a>
-          <a href="novo-desafio.html">+ Novo Desafio</a>
-        </div>
-      </div>
-    </nav>
-  </header>
-
-  <main>
+  <main style="padding-top:0;">
     <div class="page">
       <div class="page-inner-md">
+        <div style="text-align:center;margin-bottom:24px;">
+          <img src="../img/logo.png" alt="Batalha de Prompt" style="height:100px;width:auto;object-fit:contain;" />
+        </div>
         <div style="margin-bottom:32px;">
           <a href="index.html" class="back-link">← Voltar ao Admin</a>
           <h1 class="secao-titulo" style="text-align:left;margin-top:12px;">Novo Desafio</h1>
@@ -33,12 +33,12 @@
         <div class="card">
           <form id="form-novo" style="display:flex;flex-direction:column;gap:22px;">
             <div>
-              <label class="label" for="inp-title">Título do Desafio</label>
+              <label class="label-grad" for="inp-title">Título do Desafio</label>
               <input id="inp-title" type="text" class="input" required placeholder="Ex: Desafio #1 — Paisagem ao pôr do sol" />
             </div>
 
             <div>
-              <label class="label">Imagem Master</label>
+              <label class="label-grad">Imagem Master</label>
               <p style="font-size:13px;color:var(--texto-sec);margin-bottom:12px;">Faça upload da imagem que os jogadores vão tentar recriar.</p>
               <label id="upload-area" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:2px dashed #CBD5E0;border-radius:10px;padding:32px 16px;cursor:pointer;background:var(--fundo);transition:border-color 0.2s;">
                 <i class="bi bi-image" style="font-size:36px;color:var(--texto-sec);"></i>
@@ -51,19 +51,19 @@
             </div>
 
             <div>
-              <label class="label" for="inp-mprompt">Prompt Original <span style="color:var(--texto-sec);font-weight:400;">(secreto)</span></label>
+              <label class="label-grad" for="inp-mprompt">Prompt Original <span style="font-weight:400;opacity:.7;">(secreto)</span></label>
               <textarea id="inp-mprompt" class="input" rows="4" required
                 placeholder="Cole aqui o prompt exato que você usou para gerar a imagem master..."
                 style="resize:none;"></textarea>
             </div>
 
             <div>
-              <label class="label" for="inp-time">Tempo limite (minutos)</label>
+              <label class="label-grad" for="inp-time">Tempo limite (minutos)</label>
               <input id="inp-time" type="number" class="input" min="1" max="60" value="3" required style="max-width:120px;" />
             </div>
 
             <p id="erro" style="color:#DC2626;font-size:14px;background:#FEE2E2;padding:10px 14px;border-radius:8px;display:none;"></p>
-            <button type="submit" id="btn-criar" class="btn btn-primary" style="width:100%;">Criar Desafio</button>
+            <button type="submit" id="btn-criar" class="btn" style="width:100%;background:linear-gradient(135deg,#FF2D78 0%,#00B4FF 100%);color:#fff;box-shadow:0 4px 20px rgba(255,45,120,.4);">Criar Desafio</button>
           </form>
         </div>
       </div>
@@ -74,7 +74,7 @@
   <script src="../js/header.js"></script>
   <script type="module">
     import { db } from "../js/app.js";
-    import { ref, set, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+    import { ref, push, set, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
     let masterImageData = null;
 
@@ -145,9 +145,16 @@
       btn.disabled = true; btn.textContent = "Salvando...";
 
       try {
-        await set(ref(db, "challenge"), {
+        const challengeRef = push(ref(db, "challenges"));
+        await set(challengeRef, {
           title, masterImage: masterImageData, masterPrompt,
-          timeLimit, isActive: false, startedAt: null,
+          timeLimit, isActive: false, createdAt: Date.now(),
+        });
+        await set(ref(db, "activeChallenge"), challengeRef.key);
+        await set(ref(db, "currentRound"), {
+          number: 1, status: "waiting",
+          startedAt: null, player1: null, player2: null, player3: null,
+          winner: null, rankings: null,
         });
         await remove(ref(db, "submissions"));
         location.href = "index.html";

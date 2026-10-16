@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Batalha de Prompt</title>
-  <link rel="icon" href="logo.png" />
+  <link rel="icon" href="img/logo.png" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
   <style>
-    body { background: var(--azul-escuro); }
-    main { flex:1; display:flex; flex-direction:column; background:var(--azul-escuro); padding-top:0; min-height:0; height:100vh; }
+    body { background: url('img/fundo.png') center center / cover no-repeat fixed; }
+    main { flex:1; display:flex; flex-direction:column; background:rgba(4,9,31,.55); padding-top:0; min-height:0; height:100vh; }
     .tela { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow:auto; }
 
     /* ═══════════════════════════════════
@@ -21,100 +21,138 @@
        TELA 2 — Aguardando jogadores
     ═══════════════════════════════════ */
     #tela-aguardando-jogadores { text-align:center; }
-    .ag-titulo { color:#fff; font-size:clamp(24px,4vw,44px); font-weight:900; margin-bottom:8px; }
-    .ag-sub    { color:rgba(255,255,255,.45); font-size:clamp(14px,1.8vw,18px); margin-bottom:44px; }
+    .ag-titulo { color:#fff; font-size:clamp(28px,4vw,52px); font-weight:900; margin-bottom:8px; letter-spacing:-.02em; }
+    .ag-sub    { color:rgba(255,255,255,.45); font-size:clamp(14px,1.8vw,18px); margin-bottom:48px; }
 
-    .ag-slots { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; align-items:center; }
+    .ag-slots { display:flex; gap:32px; justify-content:center; align-items:center; }
+
     .ag-slot {
-      background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1);
-      border-radius:20px; padding:32px 40px; min-width:220px; text-align:center;
-      transition:border-color .4s, background .4s;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:16px; padding:28px 40px; min-width:230px; text-align:center;
+      transition:border-color .3s, background .3s;
+      backdrop-filter:blur(12px);
     }
-    .ag-slot.conectado { border-color:var(--ambar); background:rgba(255,210,31,.08); }
-    .ag-slot-numero { font-size:11px; font-weight:700; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.1em; margin-bottom:14px; }
-    .ag-slot-icone  { font-size:52px; margin-bottom:14px; display:block; opacity:.25; transition:opacity .4s; }
-    .ag-slot.conectado .ag-slot-icone { opacity:1; }
-    .ag-slot-nome   { color:#fff; font-size:clamp(18px,2.5vw,24px); font-weight:700; min-height:30px; }
+    .ag-slot.conectado { border-color:#FF2D78; background:rgba(255,45,120,.08); }
+
+    .ag-slot-numero {
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em;
+      color:rgba(255,255,255,.4); margin-bottom:16px;
+    }
+    .ag-slot.conectado .ag-slot-numero { color:#FF2D78; }
+
+    .ag-slot-avatar {
+      font-size:40px; margin-bottom:14px; display:block;
+      opacity:.4; transition:opacity .3s; color:#fff;
+    }
+    .ag-slot.conectado .ag-slot-avatar { opacity:1; color:#fff; }
+
+    .ag-slot-nome   { color:#fff; font-size:clamp(16px,2vw,22px); font-weight:700; white-space:nowrap; }
     .ag-slot-status { font-size:13px; color:rgba(255,255,255,.35); margin-top:6px; }
-    .ag-slot.conectado .ag-slot-status { color:#34D399; }
-    .ag-vs { font-size:20px; font-weight:900; color:rgba(255,255,255,.2); padding:0 8px; }
+    .ag-slot.conectado .ag-slot-status { color:#FF2D78; }
+
+    .ag-vs { font-size:18px; font-weight:900; color:rgba(255,255,255,.25); flex-shrink:0; }
 
     /* ═══════════════════════════════════
        TELA 3 — Rodada ativa
     ═══════════════════════════════════ */
     #tela-ativa {
-      display:none; width:100%; height:100vh;
+      display:none; position:fixed; inset:0; z-index:10;
+      background: linear-gradient(rgba(4,9,31,.50), rgba(4,9,31,.50)),
+                  url('img/fundo_robo.png') center center / cover no-repeat;
     }
-    #tela-ativa.visivel {
-      display:grid; grid-template-rows:auto 1fr auto auto;
-    }
+    #tela-ativa.visivel { display:block; }
 
-    /* Imagem topo */
-    .ativa-img-wrap {
-      background:var(--azul-escuro); display:flex; align-items:center; justify-content:center;
-      overflow:hidden; cursor:zoom-in; min-height:0; position:relative;
-    }
-    #master-img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
+    /* Logo: faixa topo, largura total */
     .ativa-logo-bar {
+      position:absolute; top:0; left:0; right:360px; height:110px;
       display:flex; align-items:center; justify-content:center;
-      padding:12px 0; background:var(--azul-escuro);
-      border-bottom:1px solid rgba(255,255,255,.07);
-      flex-shrink:0;
     }
 
-    /* Barra do meio: info + timer */
-    .ativa-info-bar {
-      display:flex; align-items:center; justify-content:center; gap:32px;
-      padding:14px 40px;
+    /* Corpo não é mais necessário como wrapper visual */
+    .ativa-body { position:absolute; inset:0; }
+
+    /* Imagem: do topo ao fundo, da esquerda até o painel */
+    .ativa-img-wrap {
+      position:absolute; top:110px; left:0; right:360px; bottom:0;
+      display:flex; align-items:center; justify-content:center;
+      padding:12px 20px 20px; overflow:hidden; cursor:zoom-in;
     }
-    .ativa-info-rodada { text-align:center; }
-    .ativa-rodada-label  { font-size:10px; font-weight:700; color:var(--ambar); text-transform:uppercase; letter-spacing:.12em; }
-    .ativa-rodada-titulo { color:rgba(255,255,255,.55); font-size:13px; font-weight:600; margin-top:3px; }
+    #master-img {
+      width:100%; height:100%; object-fit:contain; display:block;
+      border-radius:20px;
+    }
+
+    /* Painel: do topo ao fundo, colado à direita */
+    .ativa-right-panel {
+      position:absolute; top:0; right:0; bottom:0; width:360px;
+      background: linear-gradient(160deg, rgba(255,45,120,.30) 0%, rgba(0,180,255,.30) 100%);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(255,255,255,.2);
+      box-shadow: -8px 0 40px rgba(255,45,120,.15);
+      display:flex; flex-direction:column; justify-content:space-between;
+      padding:118px 24px 28px; overflow:hidden;
+    }
+    .ativa-right-panel::before { display:none; }
+    .ativa-right-panel::after  { display:none; }
+
+    .ativa-info-rodada { margin-bottom:0; }
+    .ativa-rodada-label {
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.16em; display:block; margin-bottom:6px;
+      background:linear-gradient(90deg,#FF2D78,#00B4FF); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .ativa-rodada-titulo { color:#fff; font-size:20px; font-weight:800; display:block; text-shadow:0 1px 8px rgba(0,0,0,.4); }
 
     .ativa-timer {
-      text-align:center; padding:0;
+      text-align:center; padding:20px 0;
+      border-top:1px solid rgba(255,255,255,.2); border-bottom:1px solid rgba(255,255,255,.2);
     }
-    .ativa-timer-label { font-size:9px; font-weight:700; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.12em; margin-bottom:4px; }
-    #timer-num { font-size:44px; font-weight:900; font-variant-numeric:tabular-nums; color:#fff; transition:color .3s; line-height:1; display:block; }
-    #timer-num.amarelo { color:#FFC107; }
-    #timer-num.vermelho { color:#EF4444; animation:timer-pisca .6s ease-in-out infinite; }
+    .ativa-timer-label { font-size:10px; font-weight:700; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:.14em; margin-bottom:8px; display:block; }
+    #timer-num {
+      font-size:72px; font-weight:900; font-variant-numeric:tabular-nums; line-height:1; display:block;
+      background:linear-gradient(135deg,#FF2D78,#00B4FF); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+      transition:filter .3s;
+    }
+    #timer-num.amarelo { background:none; -webkit-text-fill-color:#FFC107; }
+    #timer-num.vermelho { background:none; -webkit-text-fill-color:#EF4444; animation:timer-pisca .6s ease-in-out infinite; }
     @keyframes timer-pisca { 0%,100%{opacity:1} 50%{opacity:.45} }
 
-    /* Barra inferior: jogadores */
+    /* Jogadores no painel direito */
     .ativa-players-bar {
-      display:flex; align-items:center; justify-content:center; gap:16px;
-      padding:14px 40px; background:rgba(0,0,0,.25);
-      border-top:1px solid rgba(255,255,255,.06);
+      display:flex; flex-direction:column; gap:10px;
     }
 
     .ativa-player {
-      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
-      border-radius:12px; padding:10px 18px; flex:1; max-width:320px;
-      display:flex; align-items:center; gap:12px;
-      transition:border-color .3s, background .3s;
+      background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+      border-radius:10px; padding:11px 14px;
+      display:flex; align-items:center; gap:10px;
+      transition:border-color .3s, background .3s, box-shadow .3s;
     }
-    .ativa-player.enviou { border-color:#34D399; background:rgba(52,211,153,.08); }
-    .ativa-player.vazio  { opacity:.35; }
+    .ativa-player.enviou {
+      border-color:#FF2D78; background:rgba(255,45,120,.1);
+      box-shadow:0 0 16px rgba(255,45,120,.25);
+    }
+    .ativa-player.vazio  { opacity:.3; }
     .ativa-player-avatar {
-      width:36px; height:36px; border-radius:50%;
-      background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center;
-      font-size:15px; flex-shrink:0; color:rgba(255,255,255,.5);
+      width:40px; height:40px; border-radius:50%;
+      background:rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center;
+      font-size:20px; flex-shrink:0; color:rgba(255,255,255,.5);
     }
-    .ativa-player.enviou .ativa-player-avatar { background:rgba(52,211,153,.2); color:#34D399; font-weight:900; }
+    .ativa-player.enviou .ativa-player-avatar { background:rgba(255,45,120,.2); color:#FF2D78; }
     .ativa-player-info { flex:1; min-width:0; }
-    .ativa-player-nome   { color:#fff; font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .ativa-player-status { font-size:12px; color:rgba(255,255,255,.4); margin-top:2px; }
-    .ativa-player.enviou .ativa-player-status { color:#34D399; }
-    .ativa-vs { font-size:11px; font-weight:900; color:rgba(255,255,255,.2); letter-spacing:.15em; flex-shrink:0; }
+    .ativa-player-nome   { color:#fff; font-weight:700; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ativa-player-status { font-size:12px; color:rgba(255,255,255,.4); margin-top:3px; }
+    .ativa-player.enviou .ativa-player-status { color:#FF2D78; font-weight:700; }
+    .ativa-vs { font-size:10px; font-weight:900; color:rgba(255,255,255,.4); letter-spacing:.15em; text-align:center; padding:2px 0; }
 
     /* ═══════════════════════════════════
        TELA 4 — Pódio / Celebração
     ═══════════════════════════════════ */
     #tela-celebracao {
       display:none; position:fixed; inset:0; z-index:100;
-      background:var(--azul-escuro);
+      background: url('img/fundo.png') center center / cover no-repeat;
       flex-direction:column; align-items:center; justify-content:center;
-      text-align:center; padding:32px; overflow:hidden;
+      text-align:center; padding:32px; padding-bottom:18vh; overflow:hidden;
     }
     #tela-celebracao.ativa { display:flex; }
 
@@ -125,7 +163,7 @@
     }
     .celeb-titulo {
       color:#fff; font-size:clamp(16px,2.2vw,28px); font-weight:900;
-      line-height:1.15; margin-bottom:16px;
+      line-height:1.15; margin-bottom:8px;
       position:relative; z-index:1;
     }
     .celeb-titulo span { color:var(--ambar); }
@@ -198,36 +236,36 @@
   <main>
 
     <!-- TELA 1: Sem rodada ativa -->
-    <div id="tela-sem-rodada" class="tela">
-      <i class="bi bi-hourglass" style="font-size:52px;color:var(--ambar);display:block;margin-bottom:16px;"></i>
-      <h2 style="font-weight:700;font-size:22px;margin-bottom:8px;color:#fff;">Aguardando próxima rodada...</h2>
-      <p style="color:rgba(255,255,255,.45);font-size:15px;">O admin ainda não iniciou nenhuma rodada.</p>
+    <div id="tela-sem-rodada" class="tela" style="padding:0;overflow:hidden;position:fixed;inset:0;z-index:0;">
+      <video id="video-aguardando" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+        <source src="video/download.mp4" type="video/mp4" />
+      </video>
     </div>
 
     <!-- TELA 2: Aguardando jogadores se cadastrarem -->
     <div id="tela-aguardando-jogadores" class="tela" style="display:none;">
-      <img src="logo.png" alt="Batalha de Prompt" class="logo-animada" style="height:160px;width:auto;object-fit:contain;margin-bottom:20px;" />
+      <img src="img/logo.png" alt="Batalha de Prompt" class="logo-animada" style="height:160px;width:auto;object-fit:contain;margin-bottom:20px;" />
       <p id="ag-rodada-label" style="font-size:12px;font-weight:700;color:var(--ambar);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;"></p>
       <h1 class="ag-titulo">Aguardando jogadores</h1>
       <p class="ag-sub">Faça seu cadastro na sua tela e clique em avançar</p>
       <div class="ag-slots">
         <div class="ag-slot" id="ag-slot-1">
           <p class="ag-slot-numero">Jogador 1</p>
-          <span class="ag-slot-icone">👤</span>
+          <span class="ag-slot-avatar"><i class="bi bi-person-circle"></i></span>
           <p class="ag-slot-nome" id="ag-p1-nome">—</p>
           <p class="ag-slot-status" id="ag-p1-status">Aguardando cadastro</p>
         </div>
         <div class="ag-vs">VS</div>
         <div class="ag-slot" id="ag-slot-2">
           <p class="ag-slot-numero">Jogador 2</p>
-          <span class="ag-slot-icone">👤</span>
+          <span class="ag-slot-avatar"><i class="bi bi-person-circle"></i></span>
           <p class="ag-slot-nome" id="ag-p2-nome">—</p>
           <p class="ag-slot-status" id="ag-p2-status">Aguardando cadastro</p>
         </div>
         <div class="ag-vs">VS</div>
         <div class="ag-slot" id="ag-slot-3">
           <p class="ag-slot-numero">Jogador 3</p>
-          <span class="ag-slot-icone">👤</span>
+          <span class="ag-slot-avatar"><i class="bi bi-person-circle"></i></span>
           <p class="ag-slot-nome" id="ag-p3-nome">—</p>
           <p class="ag-slot-status" id="ag-p3-status">Aguardando cadastro</p>
         </div>
@@ -236,53 +274,56 @@
 
     <!-- TELA 3: Rodada ativa -->
     <div id="tela-ativa">
-      <!-- Logo (acima da imagem) -->
+      <!-- Logo (topo) -->
       <div class="ativa-logo-bar">
-        <img src="logo.png" alt="Batalha de Prompt" class="logo-animada" style="height:110px;width:auto;object-fit:contain;" />
+        <img src="img/logo.png" alt="Batalha de Prompt" class="logo-animada" style="height:90px;width:auto;object-fit:contain;" />
       </div>
 
-      <!-- Imagem master -->
-      <div class="ativa-img-wrap" onclick="abrirLightbox()">
-        <img id="master-img" src="" alt="Imagem Master" />
-      </div>
+      <!-- Corpo: imagem esquerda + painel direito -->
+      <div class="ativa-body">
 
-      <!-- Barra info (meio): rodada + timer -->
-      <div class="ativa-info-bar">
-        <div class="ativa-info-rodada">
-          <p id="ativa-rodada-label" class="ativa-rodada-label"></p>
-          <p id="ativa-rodada-titulo" class="ativa-rodada-titulo"></p>
+        <!-- Imagem master (coluna esquerda) -->
+        <div class="ativa-img-wrap" onclick="abrirLightbox()">
+          <img id="master-img" src="" alt="Imagem Master" />
         </div>
-        <div class="ativa-timer">
-          <p class="ativa-timer-label">Tempo restante</p>
-          <span id="timer-num">--:--</span>
-        </div>
-      </div>
 
-      <!-- Barra jogadores (baixo) -->
-      <div class="ativa-players-bar">
-        <div id="ativa-p1" class="ativa-player vazio">
-          <div class="ativa-player-avatar">👤</div>
-          <div class="ativa-player-info">
-            <p class="ativa-player-nome">Aguardando...</p>
-            <p class="ativa-player-status">—</p>
+        <!-- Painel direito: rodada + timer + jogadores -->
+        <div class="ativa-right-panel">
+          <div class="ativa-info-rodada">
+            <span id="ativa-rodada-label" class="ativa-rodada-label"></span>
+            <span id="ativa-rodada-titulo" class="ativa-rodada-titulo"></span>
+          </div>
+          <div class="ativa-timer">
+            <span class="ativa-timer-label">Tempo restante</span>
+            <span id="timer-num">--:--</span>
+          </div>
+          <div class="ativa-players-bar">
+            <div id="ativa-p1" class="ativa-player vazio">
+              <div class="ativa-player-avatar"><i class="bi bi-person-circle"></i></div>
+              <div class="ativa-player-info">
+                <p class="ativa-player-nome">Aguardando...</p>
+                <p class="ativa-player-status">—</p>
+              </div>
+            </div>
+            <div class="ativa-vs">— VS —</div>
+            <div id="ativa-p2" class="ativa-player vazio">
+              <div class="ativa-player-avatar"><i class="bi bi-person-circle"></i></div>
+              <div class="ativa-player-info">
+                <p class="ativa-player-nome">Aguardando...</p>
+                <p class="ativa-player-status">—</p>
+              </div>
+            </div>
+            <div class="ativa-vs">— VS —</div>
+            <div id="ativa-p3" class="ativa-player vazio">
+              <div class="ativa-player-avatar"><i class="bi bi-person-circle"></i></div>
+              <div class="ativa-player-info">
+                <p class="ativa-player-nome">Aguardando...</p>
+                <p class="ativa-player-status">—</p>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="ativa-vs">— VS —</div>
-        <div id="ativa-p2" class="ativa-player vazio">
-          <div class="ativa-player-avatar">👤</div>
-          <div class="ativa-player-info">
-            <p class="ativa-player-nome">Aguardando...</p>
-            <p class="ativa-player-status">—</p>
-          </div>
-        </div>
-        <div class="ativa-vs">— VS —</div>
-        <div id="ativa-p3" class="ativa-player vazio">
-          <div class="ativa-player-avatar">👤</div>
-          <div class="ativa-player-info">
-            <p class="ativa-player-nome">Aguardando...</p>
-            <p class="ativa-player-status">—</p>
-          </div>
-        </div>
+
       </div>
     </div>
 
@@ -292,7 +333,7 @@
 
   <!-- TELA 4: Pódio / Celebração -->
   <div id="tela-celebracao">
-    <img src="logo.png" alt="Batalha de Prompt" style="height:200px;width:auto;margin-bottom:12px;object-fit:contain;" />
+    <img src="img/logo.png" alt="Batalha de Prompt" style="height:90px;width:auto;margin-bottom:8px;object-fit:contain;" />
     <p class="celeb-pretitulo">Resultado da Rodada</p>
     <h1 class="celeb-titulo">Veja o grande<br><span>vencedor!</span></h1>
 
@@ -341,9 +382,16 @@
 
     let timerInterval = null;
     let CHALLENGE = null;
+    let ACTIVE_ID = null;
+    let unsubChallenge = null;
     let CURRENT_ROUND = null;
 
     function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+    // Tenta desmutar o vídeo assim que o autoplay começar
+    document.getElementById("video-aguardando").addEventListener("playing", function() {
+      this.muted = false;
+    }, { once: true });
 
     // ── Controle de telas ─────────────────────────────────────
     const TELAS = ["tela-sem-rodada","tela-aguardando-jogadores","tela-ativa"];
@@ -522,7 +570,12 @@
     }
 
     // ── Firebase ───────────────────────────────────────────────
-    onValue(ref(db, "challenge"), snap => { CHALLENGE = snap.val(); });
+    onValue(ref(db, "activeChallenge"), snap => {
+      ACTIVE_ID = snap.val();
+      if (unsubChallenge) { unsubChallenge(); unsubChallenge = null; }
+      if (!ACTIVE_ID) { CHALLENGE = null; return; }
+      unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => { CHALLENGE = snap.val(); });
+    });
 
     onValue(ref(db, "currentRound"), snap => {
       const round = snap.val();

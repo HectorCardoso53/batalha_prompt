@@ -4,21 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Admin — Batalha de Prompt</title>
-  <link rel="icon" href="../logo.png" />
+  <link rel="icon" href="../img/logo.png" />
   <link rel="stylesheet" href="../css/style.css" />
   <style>
     /* ── Tema escuro ── */
     body {
-      background: var(--azul-escuro);
-      background-image:
-        radial-gradient(ellipse 70% 50% at 0% 0%, rgba(0,100,255,.15) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(124,58,237,.12) 0%, transparent 60%);
+      background: url('../img/fundo.png') center center / cover no-repeat fixed;
+    }
+    main {
+      background: rgba(4,9,31,.80);
+      min-height: 100vh;
     }
     .secao-titulo { color: #fff; }
     .card {
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.1);
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
     }
     .card h2, .card p:not(#key-status):not(#rodada-status):not(#ch-status):not(#admin-timer-label):not(#prog-label) {
       color: rgba(255,255,255,.85) !important;
@@ -49,12 +51,13 @@
 
     /* ── Alerta timer zerou ── */
     #alerta-timer {
-      display:none; background:#FEF2F2; border:2px solid #EF4444;
+      display:none; background:linear-gradient(135deg,rgba(255,45,120,.15),rgba(0,180,255,.15));
+      border:2px solid rgba(255,45,120,.5);
       border-radius:12px; padding:14px 20px; margin-bottom:16px;
       align-items:center; gap:12px;
     }
     #alerta-timer.visivel { display:flex; }
-    #alerta-timer p { color:#991B1B; font-weight:700; font-size:15px; margin:0; flex:1; }
+    #alerta-timer p { color:#fff !important; font-weight:700; font-size:15px; margin:0; flex:1; }
 
     /* ── Progresso de envios ── */
     #progresso-wrap {
@@ -100,22 +103,12 @@
   </style>
 </head>
 <body>
-  <header class="header">
-    <img src="../logo.png" alt="Batalha de Prompt" class="header-banner" />
-    <nav>
-      <div class="dropdown" id="dd">
-        <button class="btn-admin" id="ddBtn">Admin <span class="arrow">▾</span></button>
-        <div class="dropdown-menu" id="ddMenu">
-          <a href="index.html">Painel Admin</a>
-          <a href="novo-desafio.html">+ Novo Desafio</a>
-        </div>
-      </div>
-    </nav>
-  </header>
-
-  <main>
+  <main style="padding-top:0;">
     <div class="page">
       <div class="page-inner">
+        <div style="text-align:center;margin-bottom:20px;padding-top:24px;">
+          <img src="../img/logo.png" alt="Batalha de Prompt" style="height:100px;width:auto;object-fit:contain;" />
+        </div>
         <div class="flex-between" style="margin-bottom:32px;">
           <div>
             <h1 class="secao-titulo" style="text-align:left;">Painel Admin</h1>
@@ -160,7 +153,7 @@
           <button id="btn-nova-rodada-vazio" class="btn btn-primary">⚔️ Criar Rodada 1</button>
         </div>
 
-        <div id="card-rodada" style="display:none;display:flex;flex-direction:column;gap:20px;">
+        <div id="card-rodada" style="display:none;flex-direction:column;gap:20px;">
 
           <!-- Cabeçalho da rodada -->
           <div class="card">
@@ -253,7 +246,7 @@
   <!-- Modal de confirmação -->
   <div id="modal-confirm" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);align-items:center;justify-content:center;">
     <div style="background:#0F1B35;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:32px 28px;max-width:380px;width:90%;box-shadow:0 24px 60px rgba(0,0,0,.6);text-align:center;">
-      <img src="../logo.png" alt="Batalha de Prompt" style="height:160px;width:auto;object-fit:contain;margin-bottom:20px;" />
+      <img src="../img/logo.png" alt="Batalha de Prompt" style="height:160px;width:auto;object-fit:contain;margin-bottom:20px;" />
       <p id="modal-confirm-txt" style="color:#fff;font-size:16px;font-weight:600;line-height:1.5;margin-bottom:28px;"></p>
       <div style="display:flex;gap:12px;justify-content:center;">
         <button id="modal-confirm-cancel" class="btn btn-secondary btn-sm" style="min-width:100px;">Cancelar</button>
@@ -405,8 +398,11 @@
 
     // ── Desafio ──────────────────────────────────────────────
     let DESAFIO = null;
-    onValue(ref(db, "challenge"), snap => {
-      DESAFIO = snap.val();
+    let ACTIVE_ID = null;
+    let unsubChallenge = null;
+    let unsubRounds = null;
+
+    function renderDesafio() {
       if (!DESAFIO?.title) {
         document.getElementById("sem-desafio").style.display = "block";
         document.getElementById("card-desafio").style.display = "none";
@@ -421,27 +417,11 @@
       document.getElementById("ch-status").textContent = ativo ? "● Ativo" : "○ Pausado";
       document.getElementById("ch-status").style.color = ativo ? "#fff" : "#FCD34D";
       document.getElementById("btn-toggle").textContent = ativo ? "⏸ Pausar" : "▶ Ativar";
-    });
+      renderRodada();
+    }
 
-    document.getElementById("btn-toggle").addEventListener("click", async () => {
-      if (!DESAFIO) return;
-      await update(ref(db, "challenge"), { isActive: !DESAFIO.isActive });
-    });
-
-    document.getElementById("btn-apagar").addEventListener("click", async () => {
-      if (!await confirmar("Apagar este desafio e todas as rodadas? Esta ação é irreversível.")) return;
-      await remove(ref(db, "challenge"));
-      await remove(ref(db, "currentRound"));
-      await remove(ref(db, "rounds"));
-      await remove(ref(db, "submissions"));
-    });
-
-    // ── Rodada atual ─────────────────────────────────────────
-    let RODADA = null;
-    onValue(ref(db, "currentRound"), snap => {
-      RODADA = snap.val();
-
-      if (!DESAFIO?.title) return; // sem desafio, não mostra
+    function renderRodada() {
+      if (!DESAFIO?.title) return;
 
       if (!RODADA) {
         document.getElementById("sem-rodada").style.display = "block";
@@ -456,15 +436,14 @@
 
       document.getElementById("btn-iniciar-rodada").style.display = RODADA.status === "waiting" ? "inline-flex" : "none";
       document.getElementById("btn-revelar").style.display        = RODADA.status === "active"  ? "inline-flex" : "none";
+      document.getElementById("btn-proxima").style.display        = RODADA.status === "done"    ? "inline-flex" : "none";
 
-      // Timer
       if (RODADA.status === "active" && RODADA.startedAt && DESAFIO?.timeLimit) {
         iniciarTimerAdmin(RODADA.startedAt, DESAFIO.timeLimit);
       } else {
         pararTimerAdmin();
       }
 
-      // Progresso de envios
       atualizarProgresso(RODADA);
 
       renderSlotAdmin(
@@ -506,6 +485,68 @@
           txt.textContent = `🏆 Vencedor: ${w?.name || ""}`;
         }
       } else { banner.style.display = "none"; }
+    }
+
+    onValue(ref(db, "activeChallenge"), snap => {
+      ACTIVE_ID = snap.val();
+      if (unsubChallenge) { unsubChallenge(); unsubChallenge = null; }
+      if (unsubRounds)    { unsubRounds();    unsubRounds    = null; }
+      if (!ACTIVE_ID) { DESAFIO = null; renderDesafio(); return; }
+
+      unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => {
+        DESAFIO = snap.val();
+        renderDesafio();
+      });
+
+      unsubRounds = onValue(ref(db, `challenges/${ACTIVE_ID}/rounds`), snap => {
+        const data = snap.val();
+        const hCard = document.getElementById("historico-card");
+        if (!data) { hCard.style.display = "none"; return; }
+        const medals = ["🏆","🥈","🥉"];
+        const rodadas = Object.values(data).sort((a,b) => (a.number||0)-(b.number||0));
+        hCard.style.display = "block";
+        document.getElementById("historico-lista").innerHTML = rodadas.map(r => {
+          const slots = ["player1","player2","player3"];
+          const ranking = r.rankings || slots;
+          const jogadores = ranking.map((slot, i) => {
+            const p = r[slot];
+            if (!p?.name) return "";
+            const score = p.score != null ? `${Math.round(p.score)}/100` : "—";
+            const isWinner = i === 0 && p.done;
+            return `
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+                <span style="font-size:15px;">${medals[i]||"·"}</span>
+                <span style="font-weight:700;color:${isWinner?"#FFD700":"#fff"};font-size:13px;flex:1;">${p.name}</span>
+                <span style="font-size:12px;font-weight:700;color:${p.done?(p.score>=70?"#34D399":p.score>=40?"#FCD34D":"#F87171"):"rgba(255,255,255,.3)"};">${score}</span>
+              </div>`;
+          }).filter(Boolean).join("");
+          return `
+            <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08);">
+              <p style="font-weight:700;color:#fff;font-size:14px;margin-bottom:10px;">Rodada ${r.number}</p>
+              <div style="display:flex;flex-direction:column;gap:6px;">${jogadores || '<span style="color:rgba(255,255,255,.3);font-size:13px;">Sem jogadores</span>'}</div>
+            </div>`;
+        }).join("");
+      });
+    });
+
+    document.getElementById("btn-toggle").addEventListener("click", async () => {
+      if (!DESAFIO || !ACTIVE_ID) return;
+      await update(ref(db, `challenges/${ACTIVE_ID}`), { isActive: !DESAFIO.isActive });
+    });
+
+    document.getElementById("btn-apagar").addEventListener("click", async () => {
+      if (!await confirmar("Apagar este desafio e todas as rodadas? Esta ação é irreversível.")) return;
+      if (ACTIVE_ID) await remove(ref(db, `challenges/${ACTIVE_ID}`));
+      await set(ref(db, "activeChallenge"), null);
+      await remove(ref(db, "currentRound"));
+      await remove(ref(db, "submissions"));
+    });
+
+    // ── Rodada atual ─────────────────────────────────────────
+    let RODADA = null;
+    onValue(ref(db, "currentRound"), snap => {
+      RODADA = snap.val();
+      renderRodada();
     });
 
     // ── Iniciar rodada ───────────────────────────────────────
@@ -557,8 +598,8 @@
     // ── Próxima rodada ───────────────────────────────────────
     document.getElementById("btn-proxima").addEventListener("click", async () => {
       if (!await confirmar("Iniciar a próxima rodada? A rodada atual será arquivada.")) return;
-      if (RODADA) {
-        await set(ref(db, `rounds/${RODADA.number}`), RODADA);
+      if (RODADA && ACTIVE_ID) {
+        await set(ref(db, `challenges/${ACTIVE_ID}/rounds/${RODADA.number}`), RODADA);
       }
       const nextNum = (RODADA?.number || 0) + 1;
       await set(ref(db, "currentRound"), {
@@ -575,39 +616,6 @@
       });
     });
 
-    // ── Histórico de rodadas ─────────────────────────────────
-    onValue(ref(db, "rounds"), snap => {
-      const data = snap.val();
-      const hCard = document.getElementById("historico-card");
-      if (!data) { hCard.style.display = "none"; return; }
-
-      const medals = ["🏆","🥈","🥉"];
-      const rodadas = Object.values(data).sort((a,b) => (a.number||0)-(b.number||0));
-      hCard.style.display = "block";
-      document.getElementById("historico-lista").innerHTML = rodadas.map(r => {
-        const slots = ["player1","player2","player3"];
-        const ranking = r.rankings || slots;
-
-        const jogadores = ranking.map((slot, i) => {
-          const p = r[slot];
-          if (!p?.name) return "";
-          const score = p.score != null ? `${Math.round(p.score)}/100` : "—";
-          const isWinner = i === 0 && p.done;
-          return `
-            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
-              <span style="font-size:15px;">${medals[i]||"·"}</span>
-              <span style="font-weight:700;color:${isWinner?"#FFD700":"#fff"};font-size:13px;flex:1;">${p.name}</span>
-              <span style="font-size:12px;font-weight:700;color:${p.done?(p.score>=70?"#34D399":p.score>=40?"#FCD34D":"#F87171"):"rgba(255,255,255,.3)"};">${score}</span>
-            </div>`;
-        }).filter(Boolean).join("");
-
-        return `
-          <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08);">
-            <p style="font-weight:700;color:#fff;font-size:14px;margin-bottom:10px;">Rodada ${r.number}</p>
-            <div style="display:flex;flex-direction:column;gap:6px;">${jogadores || '<span style="color:rgba(255,255,255,.3);font-size:13px;">Sem jogadores</span>'}</div>
-          </div>`;
-      }).join("");
-    });
   </script>
 </body>
 </html>

@@ -4,50 +4,49 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jogar — Batalha de Prompt</title>
-  <link rel="icon" href="logo.png" />
+  <link rel="icon" href="img/logo.png" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    body {
-      background: var(--azul-escuro);
-      background-image:
-        radial-gradient(ellipse 70% 50% at 0% 0%, rgba(0,100,255,.2) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(124,58,237,.18) 0%, transparent 60%);
-    }
+    html, body { height: 100vh; overflow: hidden; }
+    main { flex: 1; overflow: hidden; }
     @keyframes flutuar {
       0%,100% { transform: translateY(0); }
       50%      { transform: translateY(-10px); }
     }
-    .logo-flutuando {
-      animation: flutuar 3s ease-in-out infinite;
-    }
-    .secao-titulo { color: #fff; }
-    .label { color: rgba(255,255,255,.65); }
-    p { color: rgba(255,255,255,.8); }
+    .logo-flutuando { animation: flutuar 3s ease-in-out infinite; }
+    .secao-titulo { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.4); }
+    .label { color: rgba(255,255,255,.8); font-weight:700; }
+    p { color: rgba(255,255,255,.85); }
     .card {
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      backdrop-filter: blur(12px);
+      background: rgba(4, 9, 31, 0.58);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
     .input {
-      background: rgba(255,255,255,.08);
-      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.22);
       color: #fff;
     }
-    .input::placeholder { color: rgba(255,255,255,.35); }
+    .input::placeholder { color: rgba(255,255,255,.40); }
     .input:focus {
-      background: rgba(255,255,255,.12);
+      background: rgba(255,255,255,.16);
       border-color: var(--azul-ceu);
+      box-shadow: 0 0 0 3px rgba(0,180,255,.25);
     }
     .step { display:none; } .step.ativo { display:block; }
-    #step-login.ativo, #step-espera.ativo { display:flex; align-items:center; justify-content:center; }
+    #step-login.ativo, #step-espera.ativo { display:flex; align-items:center; justify-content:center; padding-bottom:30vh; }
     .img-ambar { width:100%; border-radius:8px; border:2px solid var(--ambar); display:block; object-fit:contain; }
     .img-azul  { width:100%; border-radius:8px; border:2px solid var(--azul-ceu); display:block; object-fit:contain; }
     .prompt-citado { border-left:3px solid var(--ambar); padding-left:14px; font-size:14px; line-height:1.6; }
-    #timer-box { display:flex; align-items:center; justify-content:center; gap:10px; padding:12px 20px; border-radius:10px; background:var(--fundo-secao); margin-bottom:16px; }
-    #timer-num { font-size:36px; font-weight:900; font-variant-numeric:tabular-nums; transition:color 0.3s; }
-    #timer-num.amarelo { color:#92400E; }
-    #timer-num.vermelho { color:#DC2626; }
-    .slot-badge { display:inline-block; background:var(--azul-marinho); color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:99px; margin-bottom:8px; }
+    #timer-box { display:flex; align-items:center; justify-content:center; gap:10px; padding:14px 24px; border-radius:12px; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(12px); margin-bottom:16px; }
+    #timer-box span:first-child { color:rgba(255,255,255,.7) !important; }
+    #timer-num { font-size:40px; font-weight:900; font-variant-numeric:tabular-nums; transition:color 0.3s; color:#fff; }
+    #timer-num.amarelo { color:#FFC107; }
+    #timer-num.vermelho { color:#EF4444; animation:timer-pisca .6s ease-in-out infinite; }
+    @keyframes timer-pisca { 0%,100%{opacity:1} 50%{opacity:.45} }
+    .slot-badge { display:inline-block; background:linear-gradient(135deg,#FF2D78,#00B4FF); color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:99px; margin-bottom:8px; }
+    .label-upper { color:rgba(255,255,255,.5) !important; }
     .oponente-loading { text-align:center; padding:24px; color:var(--texto-sec); font-size:14px; }
     .reveal-box { background:#FEF3C7; border:1px solid var(--ambar); border-radius:10px; padding:16px 20px; margin-bottom:24px; }
     .reveal-box p:first-child { font-size:11px; font-weight:700; color:#92400E; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
@@ -57,68 +56,72 @@
 <body>
   <main style="padding-top:0;">
     <!-- LOGIN -->
-    <div id="step-login" class="step ativo page" style="min-height:100vh;">
+    <div id="step-login" class="step ativo page" style="height:100vh;overflow:hidden;">
       <div style="width:100%;max-width:420px;text-align:center;">
-        <img src="logo.png" alt="Batalha de Prompt" class="logo-flutuando" style="height:220px;width:auto;object-fit:contain;margin-bottom:32px;" />
-        <h1 class="secao-titulo" style="text-align:center;margin-bottom:6px;">Entrar na Batalha</h1>
+        <img src="img/logo.png" alt="Batalha de Prompt" class="logo-flutuando" style="height:170px;width:auto;object-fit:contain;margin-bottom:24px;" />
+        <h1 class="secao-titulo" style="text-align:center;margin-bottom:6px;color:#fff;">Entrar na Batalha</h1>
         <div class="secao-traco" style="margin:0 auto 24px;"></div>
         <div id="aviso" class="aviso-amarelo" style="display:none;"></div>
-        <div class="card">
+        <div class="card" style="background:rgba(255,255,255,.95);border:1px solid rgba(255,255,255,.3);">
           <form id="form-login" style="display:flex;flex-direction:column;gap:14px;">
             <div>
-              <label class="label" for="inp-nome">Seu nome</label>
-              <input id="inp-nome" type="text" class="input" placeholder="Ex: João Silva" required />
+              <label class="label" for="inp-nome" style="background:linear-gradient(135deg,#FF2D78,#00B4FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:18px;">Seu nome</label>
+              <input id="inp-nome" type="text" class="input" placeholder="Ex: João Silva" required
+                style="background:#fff;color:var(--texto);border-color:#A8BEF0;" />
             </div>
-            <button type="submit" id="btn-login" class="btn btn-primary" style="width:100%;">Entrar no desafio</button>
+            <button type="submit" id="btn-login" class="btn" style="width:100%;background:linear-gradient(135deg,#FF2D78 0%,#00B4FF 100%);color:#fff;box-shadow:0 4px 20px rgba(255,45,120,.45);">Entrar no desafio</button>
           </form>
         </div>
       </div>
     </div>
 
     <!-- ESPERA (slot reservado, aguardando admin iniciar) -->
-    <div id="step-espera" class="step page" style="min-height:100vh;">
+    <div id="step-espera" class="step page" style="height:100vh;overflow:hidden;">
       <div style="width:100%;max-width:440px;text-align:center;">
-        <img src="logo.png" alt="Batalha de Prompt" class="logo-flutuando" style="height:200px;width:auto;object-fit:contain;margin-bottom:28px;" />
+        <img src="img/logo.png" alt="Batalha de Prompt" class="logo-flutuando" style="height:200px;width:auto;object-fit:contain;margin-bottom:28px;" />
         <div class="card" style="padding:40px 24px;">
           <p id="espera-slot" class="slot-badge"></p>
           <h2 id="espera-nome" style="font-weight:700;font-size:24px;color:#fff;margin:12px 0 8px;"></h2>
-          <p style="color:rgba(255,255,255,.55);font-size:14px;">Aguardando o admin iniciar a rodada...</p>
+          <p style="color:rgba(255,255,255,.65);font-size:14px;">Aguardando o admin iniciar a rodada...</p>
           <div style="margin-top:24px;font-size:32px;">⏳</div>
         </div>
       </div>
     </div>
 
     <!-- JOGO -->
-    <div id="step-game" class="step page">
+    <div id="step-game" class="step page" style="height:100vh;overflow-y:auto;">
       <div class="page-inner">
+        <div style="text-align:center;margin-bottom:12px;">
+          <img src="img/logo.png" alt="Batalha de Prompt" style="height:60px;width:auto;object-fit:contain;" />
+        </div>
+        <span id="game-slot-badge" style="display:none;"></span>
+        <strong id="game-nome" style="display:none;"></strong>
         <div style="margin-bottom:16px;">
-          <p style="font-size:13px;color:var(--texto-sec);">
-            <span id="game-slot-badge" class="slot-badge"></span>
-            Jogando como <strong id="game-nome" style="color:var(--azul-marinho);"></strong>
-          </p>
-          <h1 id="game-title" style="font-weight:700;font-size:22px;color:var(--azul-marinho);"></h1>
+          <h1 id="game-title" style="font-weight:700;font-size:22px;color:#fff;"></h1>
         </div>
 
         <div id="timer-box">
-          <span style="font-size:14px;font-weight:700;color:var(--texto-sec);">⏱ Tempo restante:</span>
+          <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.7);">⏱ Tempo restante:</span>
           <span id="timer-num">--:--</span>
         </div>
 
-        <div class="grid-auto">
-          <div class="card">
-            <p class="label-upper">Imagem Master — tente recriar</p>
-            <img id="game-img" src="" alt="Imagem Master" class="img-ambar" />
+        <div class="grid-auto" style="align-items:start;">
+          <div class="card" style="background:rgba(255,45,120,.12);border:2px solid rgba(255,45,120,.45);backdrop-filter:blur(16px);">
+            <p class="label-upper" style="background:linear-gradient(135deg,#FF2D78,#00B4FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Imagem Master — tente recriar</p>
+            <div style="aspect-ratio:1/1;width:100%;border-radius:8px;border:2px solid var(--ambar);overflow:hidden;background:#000;">
+              <img id="game-img" src="" alt="Imagem Master" style="width:100%;height:100%;object-fit:contain;display:block;" />
+            </div>
           </div>
-          <div class="card" style="display:flex;flex-direction:column;">
-            <p class="label-upper">Seu Prompt</p>
+          <div class="card" style="background:rgba(0,180,255,.10);border:2px solid rgba(0,180,255,.40);backdrop-filter:blur(16px);display:flex;flex-direction:column;">
+            <p class="label-upper" style="background:linear-gradient(135deg,#FF2D78,#00B4FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Seu Prompt</p>
             <form id="form-prompt" style="display:flex;flex-direction:column;gap:14px;flex:1;">
               <textarea id="inp-prompt" class="input" rows="10" required maxlength="1000"
                 placeholder="Descreva a imagem com o máximo de detalhes — cores, composição, estilo, objetos, iluminação..."
                 style="resize:none;flex:1;"></textarea>
-              <p id="char-count" style="font-size:12px;color:var(--texto-sec);text-align:right;margin-top:4px;">0 / 1000</p>
-              <p id="erro-prompt" style="color:#DC2626;font-size:13px;display:none;"></p>
+              <p id="char-count" style="font-size:12px;color:rgba(255,255,255,.5);text-align:right;margin-top:4px;">0 / 1000</p>
+              <p id="erro-prompt" style="color:#EF4444;font-size:13px;display:none;"></p>
               <button type="submit" id="btn-prompt" class="btn btn-primary" style="width:100%;">Enviar Prompt</button>
-              <p id="msg-loading" style="font-size:12px;color:var(--texto-sec);text-align:center;display:none;">Comparando seu prompt com a IA... aguarde.</p>
+              <p id="msg-loading" style="font-size:12px;color:rgba(255,255,255,.6);text-align:center;display:none;">Comparando seu prompt com a IA... aguarde.</p>
             </form>
           </div>
         </div>
@@ -126,50 +129,54 @@
     </div>
 
     <!-- RESULTADO -->
-    <div id="step-result" class="step page">
-      <div class="page-inner">
-        <h1 class="secao-titulo" style="text-align:left;">Seu Resultado</h1>
-        <div class="secao-traco" style="margin:8px 0 24px;"></div>
+    <div id="step-result" class="step" style="position:fixed;inset:0;z-index:10;overflow-y:auto;padding:24px 32px;background:url('img/fundo_robo.png') center center/cover no-repeat;">
+      <div class="page-inner" style="max-width:1000px;">
 
-        <!-- Pontuação própria -->
-        <div class="card flex-row" style="align-items:center;gap:20px;margin-bottom:24px;">
-          <div>
-            <p style="font-size:13px;color:rgba(255,255,255,.6);font-weight:700;margin-bottom:4px;">Pontuação de similaridade</p>
-            <div style="display:flex;align-items:baseline;gap:4px;">
-              <span id="score-num" style="font-size:64px;font-weight:900;"></span>
-              <span style="font-size:24px;color:rgba(255,255,255,.6);font-weight:700;">/100</span>
-            </div>
+        <!-- Cabeçalho -->
+        <div style="text-align:center;margin-bottom:32px;padding-top:20px;">
+          <img src="img/logo.png" alt="Batalha de Prompt" style="height:70px;width:auto;object-fit:contain;display:block;margin:0 auto 12px;" />
+          <h1 style="font-weight:900;font-size:26px;color:#fff;">Seu Resultado</h1>
+          <div id="banner-vencedor" style="display:none;margin-top:12px;padding:10px 24px;border-radius:10px;background:linear-gradient(135deg,rgba(255,45,120,.2),rgba(0,180,255,.2));border:1.5px solid rgba(255,215,0,.5);display:inline-block;">
+            <p id="banner-txt" style="font-size:16px;font-weight:900;color:#FFD700;"></p>
           </div>
-          <div id="score-msg" style="flex:1;min-width:200px;border-radius:10px;padding:16px 20px;font-weight:700;font-size:15px;"></div>
         </div>
 
-        <!-- Suas imagens -->
-        <div class="card" style="margin-bottom:24px;">
-          <p class="label-upper" style="color:rgba(255,255,255,.5);">Imagem Master</p>
-          <img id="res-master" src="" alt="Master" class="img-ambar" />
+        <!-- Linha 1: Score | Imagem | Adversários -->
+        <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:20px;margin-bottom:20px;align-items:start;">
+
+          <!-- Score -->
+          <div style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.30);backdrop-filter:blur(16px);border-radius:16px;padding:28px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+            <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.12em;margin:0;">Pontuação</p>
+            <div style="display:flex;align-items:baseline;gap:4px;">
+              <span id="score-num" style="font-size:72px;font-weight:900;line-height:1;background:linear-gradient(135deg,#FF2D78,#00B4FF);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;"></span>
+              <span style="font-size:22px;color:rgba(255,255,255,.4);font-weight:700;">/100</span>
+            </div>
+            <div id="score-msg" style="width:100%;border-radius:10px;padding:10px 12px;font-weight:700;font-size:13px;line-height:1.4;"></div>
+          </div>
+
+          <!-- Imagem master -->
+          <div style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.30);backdrop-filter:blur(16px);border-radius:16px;padding:16px;">
+            <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.12em;margin:0 0 12px;">Imagem Master</p>
+            <img id="res-master" src="" alt="Master" style="width:100%;max-height:240px;object-fit:contain;display:block;border-radius:10px;" />
+          </div>
+
+          <!-- Adversários -->
+          <div style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.30);backdrop-filter:blur(16px);border-radius:16px;padding:20px;">
+            <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.12em;margin:0 0 16px;">Adversários</p>
+            <div id="oponentes-lista" style="display:flex;flex-direction:column;gap:12px;"></div>
+          </div>
         </div>
 
-        <!-- Seu prompt -->
-        <div class="card" style="margin-bottom:24px;">
-          <p style="font-weight:700;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Prompt enviado:</p>
-          <p id="res-prompt" class="prompt-citado" style="color:#fff;"></p>
-        </div>
-
-        <!-- Prompt original revelado -->
-        <div class="reveal-box" style="margin-bottom:24px;background:rgba(255,200,0,.08);border-color:var(--ambar);">
-          <p style="color:var(--ambar);">Prompt Original (revelado)</p>
-          <p id="res-master-prompt" style="color:#fff;"></p>
-        </div>
-
-        <!-- Adversários -->
-        <div class="card" style="margin-bottom:24px;">
-          <h2 style="font-weight:700;font-size:16px;color:#fff;margin-bottom:16px;">⚔️ Adversários</h2>
-          <div id="oponentes-lista"></div>
-        </div>
-
-        <!-- Banner vencedor -->
-        <div id="banner-vencedor" style="display:none;text-align:center;padding:24px;border-radius:12px;margin-bottom:24px;">
-          <p id="banner-txt" style="font-size:22px;font-weight:900;"></p>
+        <!-- Linha 2: Prompts -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.30);backdrop-filter:blur(16px);border-radius:16px;padding:20px;">
+            <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.12em;margin:0 0 12px;">Seu Prompt</p>
+            <p id="res-prompt" style="font-size:14px;line-height:1.7;color:rgba(255,255,255,.85);border-left:3px solid #FF2D78;padding-left:12px;margin:0;"></p>
+          </div>
+          <div style="background:rgba(255,215,0,.14);border:1px solid rgba(255,215,0,.40);backdrop-filter:blur(16px);border-radius:16px;padding:20px;">
+            <p style="font-size:11px;font-weight:700;color:rgba(255,215,0,.7);text-transform:uppercase;letter-spacing:.12em;margin:0 0 12px;">Prompt Original</p>
+            <p id="res-master-prompt" style="font-size:14px;line-height:1.7;color:rgba(255,255,255,.85);border-left:3px solid var(--ambar);padding-left:12px;margin:0;"></p>
+          </div>
         </div>
 
       </div>
@@ -177,10 +184,15 @@
   </main>
 
   <!-- Overlay: nomes dos competidores ao iniciar -->
-  <div id="overlay-inicio" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,10,30,.92);flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px;">
-    <p style="font-size:13px;font-weight:700;color:var(--ambar);letter-spacing:.12em;text-transform:uppercase;">Competidores desta rodada</p>
-    <h2 style="font-size:26px;font-weight:900;color:#fff;margin-bottom:8px;">⚔️ Que comecem os jogos!</h2>
-    <div id="overlay-jogadores" style="display:flex;flex-direction:column;gap:10px;margin-top:8px;"></div>
+  <div id="overlay-inicio" style="display:none;position:fixed;inset:0;z-index:200;background:url('img/fundo.png') center/cover no-repeat;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;">
+    <div style="position:absolute;inset:0;background:rgba(4,9,31,.88);backdrop-filter:blur(4px);"></div>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:0;width:100%;max-width:480px;padding:40px 24px;">
+      <img src="img/logo.png" alt="Batalha de Prompt" style="height:90px;width:auto;object-fit:contain;margin-bottom:24px;" />
+      <p style="font-size:11px;font-weight:700;background:linear-gradient(135deg,#FF2D78,#00B4FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">Competidores desta rodada</p>
+      <div style="width:60px;height:3px;background:linear-gradient(90deg,#FF2D78,#00B4FF);border-radius:2px;margin-bottom:20px;"></div>
+      <h2 style="font-size:28px;font-weight:900;color:#fff;margin-bottom:28px;letter-spacing:-.01em;">⚔️ Que comecem os jogos!</h2>
+      <div id="overlay-jogadores" style="display:flex;flex-direction:column;gap:12px;width:100%;"></div>
+    </div>
   </div>
 
   <script src="js/header.js"></script>
@@ -188,12 +200,14 @@
     import { db } from "./js/app.js";
     import { ref, onValue, get, set, update } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
-    let CHALLENGE  = null;
-    let ROUND      = null;
-    let mySlot     = null; // "player1" | "player2" | "player3"
-    let nomeJogador= "";
+    let CHALLENGE   = null;
+    let ACTIVE_ID   = null;
+    let ROUND       = null;
+    let mySlot      = null; // "player1" | "player2" | "player3"
+    let nomeJogador = "";
     let timerInterval = null;
     let initialized = false;
+    let unsubChallenge = null;
 
     const SLOT_LABELS = { player1:"Jogador 1", player2:"Jogador 2", player3:"Jogador 3" };
 
@@ -236,19 +250,30 @@
       timerInterval = setInterval(tick, 500);
     }
 
-    // ── Listener challenge ───────────────────────────────────
-    onValue(ref(db, "challenge"), snap => {
-      CHALLENGE = snap.val();
+    // ── Listener challenge via activeChallenge ───────────────
+    onValue(ref(db, "activeChallenge"), snap => {
+      ACTIVE_ID = snap.val();
+      if (unsubChallenge) { unsubChallenge(); unsubChallenge = null; }
       const aviso = document.getElementById("aviso");
       const btn   = document.getElementById("btn-login");
-      if (!CHALLENGE || !CHALLENGE.isActive) {
+      if (!ACTIVE_ID) {
+        CHALLENGE = null;
         aviso.textContent = "Nenhum desafio ativo. Aguarde o admin.";
         aviso.style.display = "block";
         btn.disabled = true;
-      } else {
-        aviso.style.display = "none";
-        btn.disabled = false;
+        return;
       }
+      unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => {
+        CHALLENGE = snap.val();
+        if (!CHALLENGE || !CHALLENGE.isActive) {
+          aviso.textContent = "Nenhum desafio ativo. Aguarde o admin.";
+          aviso.style.display = "block";
+          btn.disabled = true;
+        } else {
+          aviso.style.display = "none";
+          btn.disabled = false;
+        }
+      });
     });
 
     // ── Listener rodada atual ────────────────────────────────
@@ -289,7 +314,7 @@
       // Espera → Jogo: rodada ficou ativa
       if (document.getElementById("step-espera").classList.contains("ativo") && ROUND?.status === "active") {
         if (!CHALLENGE) {
-          get(ref(db, "challenge")).then(s => { CHALLENGE = s.val(); entrarNoJogo(); });
+          get(ref(db, `challenges/${ACTIVE_ID}`)).then(s => { CHALLENGE = s.val(); entrarNoJogo(); });
         } else {
           entrarNoJogo();
         }
@@ -299,7 +324,7 @@
       // Login → Jogo: entrou enquanto rodada já estava ativa e slot é seu
       if (document.getElementById("step-login").classList.contains("ativo") && ROUND?.status === "active" && mySlot) {
         if (!CHALLENGE) {
-          get(ref(db, "challenge")).then(s => { CHALLENGE = s.val(); entrarNoJogo(); });
+          get(ref(db, `challenges/${ACTIVE_ID}`)).then(s => { CHALLENGE = s.val(); entrarNoJogo(); });
         } else {
           entrarNoJogo();
         }
@@ -322,7 +347,7 @@
     async function entrarNoJogo() {
       if (!ROUND) return;
       if (!CHALLENGE) {
-        const s = await get(ref(db, "challenge"));
+        const s = await get(ref(db, `challenges/${ACTIVE_ID}`));
         CHALLENGE = s.val();
       }
       if (!CHALLENGE) return;
@@ -338,7 +363,7 @@
       document.getElementById("overlay-jogadores").innerHTML =
         ["player1","player2","player3"]
           .filter(s => ROUND[s]?.name)
-          .map(s => `<div style="font-size:17px;font-weight:700;color:#fff;padding:10px 32px;border-radius:8px;background:rgba(255,255,255,.1);">${SLOT_LABELS[s]}: ${ROUND[s].name}</div>`)
+          .map((s,i) => `<div style="font-size:16px;font-weight:700;color:#fff;padding:14px 28px;border-radius:12px;background:${i===0?'rgba(255,45,120,.18)':i===1?'rgba(0,180,255,.18)':'rgba(124,58,237,.18)'};border:1.5px solid ${i===0?'rgba(255,45,120,.5)':i===1?'rgba(0,180,255,.5)':'rgba(124,58,237,.5)'};width:100%;text-align:center;"><span style="opacity:.65;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px;">${SLOT_LABELS[s]}</span>${ROUND[s].name}</div>`)
           .join("");
       overlay.style.display = "flex";
       setTimeout(() => { overlay.style.display = "none"; }, 3000);
@@ -360,7 +385,9 @@
         const round = roundSnap.val();
 
         if (!round || round.status === "done") {
-          aviso.textContent = "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
+          aviso.textContent = round?.status === "done"
+            ? "Rodada encerrada. Aguarde o admin iniciar a próxima rodada."
+            : "Nenhuma rodada ativa. Aguarde o admin criar uma rodada.";
           aviso.style.display = "block";
           btn.disabled = false; btn.textContent = "Entrar no desafio";
           return;
@@ -496,15 +523,16 @@
         const num = document.getElementById("score-num");
         const msg = document.getElementById("score-msg");
         num.textContent = scoreFinal;
+        msg.style.background = "linear-gradient(135deg,rgba(255,45,120,.25),rgba(0,180,255,.25))";
+        msg.style.border = "1px solid rgba(255,255,255,.2)";
+        msg.style.backdropFilter = "blur(12px)";
+        msg.style.color = "#fff";
         if (score >= 70) {
-          num.style.color="#065F46"; msg.style.background="#D1FAE5"; msg.style.color="#065F46";
-          msg.textContent="🎉 Excelente! Seu prompt está muito próximo do original!";
+          msg.textContent = "🎉 Excelente! Seu prompt está muito próximo do original!";
         } else if (score >= 40) {
-          num.style.color="#92400E"; msg.style.background="#FEF3C7"; msg.style.color="#92400E";
-          msg.textContent="👍 Bom trabalho! Você capturou parte da essência da imagem.";
+          msg.textContent = "👍 Bom trabalho! Você capturou parte da essência da imagem.";
         } else {
-          num.style.color="#991B1B"; msg.style.background="#FEE2E2"; msg.style.color="#991B1B";
-          msg.textContent="💪 Continue tentando! Detalhe mais os elementos visuais.";
+          msg.textContent = "💪 Continue tentando! Detalhe mais os elementos visuais.";
         }
         document.getElementById("res-master").src         = CHALLENGE.masterImage;
         document.getElementById("res-prompt").textContent = prompt;
@@ -564,17 +592,14 @@
       const banner = document.getElementById("banner-vencedor");
       const txt    = document.getElementById("banner-txt");
       banner.style.display = "block";
+      banner.style.background = "linear-gradient(135deg,rgba(255,45,120,.25),rgba(0,180,255,.25))";
+      banner.style.border = "1.5px solid rgba(255,255,255,.25)";
+      banner.style.backdropFilter = "blur(12px)";
+      txt.style.color = "#fff";
       const pos = ROUND.rankings.indexOf(mySlot) + 1;
-      if (pos === 1) {
-        banner.style.background = "#D1FAE5"; txt.style.color = "#065F46";
-        txt.textContent = "🏆 Você ficou em 1º lugar!";
-      } else if (pos === 2) {
-        banner.style.background = "#FEF3C7"; txt.style.color = "#92400E";
-        txt.textContent = "🥈 Você ficou em 2º lugar!";
-      } else if (pos === 3) {
-        banner.style.background = "#FEE2E2"; txt.style.color = "#991B1B";
-        txt.textContent = "🥉 Você ficou em 3º lugar!";
-      }
+      if (pos === 1)      txt.textContent = "🏆 Você ficou em 1º lugar!";
+      else if (pos === 2) txt.textContent = "🥈 Você ficou em 2º lugar!";
+      else if (pos === 3) txt.textContent = "🥉 Você ficou em 3º lugar!";
     }
   </script>
 </body>
