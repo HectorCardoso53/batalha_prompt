@@ -46,7 +46,7 @@
     .img-ambar { width:100%; border-radius:8px; border:2px solid var(--ambar); display:block; object-fit:contain; }
     .img-azul  { width:100%; border-radius:8px; border:2px solid var(--azul-ceu); display:block; object-fit:contain; }
     .prompt-citado { border-left:3px solid var(--ambar); padding-left:14px; font-size:14px; line-height:1.6; }
-    #timer-box { display:flex; align-items:center; justify-content:center; gap:10px; padding:14px 24px; border-radius:12px; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(12px); margin-bottom:16px; }
+    #timer-box { display:flex; align-items:center; justify-content:center; gap:10px; padding:14px 24px; border-radius:12px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); backdrop-filter:blur(14px); margin-bottom:16px; }
     #timer-box span:first-child { color:rgba(255,255,255,.7) !important; }
     #timer-num { font-size:40px; font-weight:900; font-variant-numeric:tabular-nums; transition:color 0.3s; color:#fff; }
     #timer-num.amarelo { color:#FFC107; }
@@ -113,13 +113,13 @@
         </div>
 
         <div class="grid-auto" style="align-items:start;">
-          <div class="card" style="background:rgba(255,45,120,.12);border:2px solid rgba(255,45,120,.45);backdrop-filter:blur(16px);">
+          <div class="card" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(14px);">
             <p class="label-upper" style="background:linear-gradient(135deg,#FF2D78,#00B4FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Imagem Master — tente recriar</p>
             <div style="aspect-ratio:1/1;width:100%;border-radius:8px;border:2px solid var(--ambar);overflow:hidden;background:#000;">
               <img id="game-img" src="" alt="Imagem Master" style="width:100%;height:100%;object-fit:contain;display:block;" />
             </div>
           </div>
-          <div class="card" style="background:rgba(0,180,255,.10);border:2px solid rgba(0,180,255,.40);backdrop-filter:blur(16px);display:flex;flex-direction:column;">
+          <div class="card" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(14px);display:flex;flex-direction:column;">
             <p class="label-upper" style="background:linear-gradient(135deg,#FF2D78,#00B4FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Seu Prompt</p>
             <form id="form-prompt" style="display:flex;flex-direction:column;gap:14px;flex:1;">
               <textarea id="inp-prompt" class="input" rows="10" required maxlength="1000"
