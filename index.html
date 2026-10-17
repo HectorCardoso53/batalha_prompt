@@ -568,13 +568,43 @@
     onValue(ref(db, "activeChallenge"), snap => {
       ACTIVE_ID = snap.val();
       if (unsubChallenge) { unsubChallenge(); unsubChallenge = null; }
-      if (!ACTIVE_ID) { CHALLENGE = null; return; }
-      unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => { CHALLENGE = snap.val(); });
+      if (!ACTIVE_ID) { CHALLENGE = null; renderTV(); return; }
+      unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => {
+        CHALLENGE = snap.val();
+        renderTV();
+      });
     });
+
+    function renderTV() {
+      const round = CURRENT_ROUND;
+
+      // Desafio pausado ou sem desafio → volta para o vídeo de espera
+      if (!CHALLENGE || !CHALLENGE.isActive) {
+        mostrarSomente("tela-sem-rodada");
+        ocultarPodio();
+        if (timerInterval) clearInterval(timerInterval);
+        return;
+      }
+
+      if (!round) {
+        mostrarSomente("tela-sem-rodada");
+        ocultarPodio();
+        if (timerInterval) clearInterval(timerInterval);
+        return;
+      }
+
+      if (round.status === "done") {
+        mostrarPodio(round);
+        if (timerInterval) clearInterval(timerInterval);
+        return;
+      }
+    }
 
     onValue(ref(db, "currentRound"), snap => {
       const round = snap.val();
       CURRENT_ROUND = round;
+
+      if (!CHALLENGE?.isActive) return; // desafio pausado, TV já está no vídeo
 
       if (!round) {
         mostrarSomente("tela-sem-rodada");
