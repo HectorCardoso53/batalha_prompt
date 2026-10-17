@@ -22,10 +22,10 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
     }
-    .card h2, .card p:not(#key-status):not(#rodada-status):not(#ch-status):not(#admin-timer-label):not(#prog-label) {
+    .card h2, .card p:not(#key-status):not(#ch-status):not(#admin-timer-label):not(#prog-label) {
       color: rgba(255,255,255,.85) !important;
     }
-    #ch-title, #rodada-titulo { color: #fff !important; }
+    #ch-title { color: #fff !important; }
     .label-upper { color: rgba(255,255,255,.45) !important; }
     #progresso-wrap { background: rgba(255,255,255,.06); }
     #prog-label { color: rgba(255,255,255,.8); }
@@ -94,6 +94,16 @@
       100% { box-shadow:0 0 0 0 rgba(52,211,153,0); background:rgba(255,255,255,.06); }
     }
 
+    /* ── Botão iniciar desabilitado ── */
+    #btn-iniciar-rodada:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* ── Details colapsáveis ── */
+    #rodada-details summary, #historico-details summary { user-select:none; }
+    #rodada-details summary::-webkit-details-marker,
+    #historico-details summary::-webkit-details-marker { display:none; }
+    #rodada-details[open] #rodada-arrow { transform:rotate(90deg); }
+    #historico-details[open] .hist-arrow { transform:rotate(90deg); }
+
     /* ── Badge de enviou ── */
     .badge-enviou {
       display:inline-block; background:#D1FAE5; color:#065F46;
@@ -133,7 +143,9 @@
           <p style="font-size:18px;color:var(--texto-sec);margin-bottom:16px;">Nenhum desafio criado.</p>
           <a href="novo-desafio.html" class="btn btn-primary">Criar novo desafio</a>
         </div>
+
         <div id="card-desafio" class="card" style="display:none;margin-bottom:24px;">
+          <!-- Cabeçalho do desafio -->
           <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
             <div style="flex:1;min-width:200px;">
               <h2 id="ch-title" style="font-weight:700;color:#fff;font-size:18px;margin-bottom:4px;"></h2>
@@ -145,108 +157,103 @@
               <button id="btn-apagar" class="btn btn-secondary btn-sm">Apagar desafio</button>
             </div>
           </div>
+
+          <!-- ── Rodada colapsável (auto-abre quando existe rodada) ── -->
+          <details id="rodada-details" style="margin-top:16px;">
+            <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;padding:12px 0 0;border-top:1px solid rgba(255,255,255,.1);">
+              <span id="rodada-arrow" style="font-size:12px;color:rgba(255,255,255,.4);display:inline-block;transition:transform .2s;">▶</span>
+              <span id="rodada-summary-label" style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7);">Nenhuma rodada</span>
+            </summary>
+
+            <!-- Sem rodada -->
+            <div id="sem-rodada-inner" style="display:none;text-align:center;padding:28px 0 8px;">
+              <p style="color:var(--texto-sec);margin-bottom:16px;">Nenhuma rodada criada ainda.</p>
+              <button id="btn-nova-rodada-vazio" class="btn btn-primary">⚔️ Criar Rodada 1</button>
+            </div>
+
+            <!-- Com rodada -->
+            <div id="rodada-inner" style="display:none;padding-top:16px;">
+              <!-- Botões da rodada -->
+              <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                <button id="btn-iniciar-rodada" class="btn btn-primary btn-sm" style="display:none;">▶ Iniciar Rodada</button>
+                <button id="btn-revelar" class="btn btn-secondary btn-sm" style="display:none;">🏁 Encerrar e Revelar</button>
+                <button id="btn-proxima" class="btn btn-secondary btn-sm" style="display:none;">⏭ Próxima Rodada</button>
+              </div>
+
+              <!-- Timer ao vivo -->
+              <div id="admin-timer-wrap">
+                <div>
+                  <div id="admin-timer-label">Tempo restante</div>
+                  <div id="admin-timer-num">--:--</div>
+                </div>
+                <button id="btn-revelar-timer" class="btn btn-primary btn-sm" style="display:none;">🏁 Encerrar agora</button>
+              </div>
+
+              <!-- Alerta timer zerou -->
+              <div id="alerta-timer">
+                <span style="font-size:22px;">⏰</span>
+                <p>Tempo esgotado! Encerre a rodada quando estiver pronto.</p>
+                <button id="btn-revelar-alerta" class="btn btn-primary btn-sm">🏁 Encerrar</button>
+              </div>
+
+              <!-- Barra de progresso de envios -->
+              <div id="progresso-wrap">
+                <div class="prog-bar-outer"><div class="prog-bar-inner" id="prog-bar" style="width:0%"></div></div>
+                <span id="prog-label">0 / 3 enviaram</span>
+              </div>
+
+              <!-- Slots dos jogadores -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div class="player-slot" id="slot-p1">
+                  <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 1</p>
+                  <p id="p1-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
+                  <p id="p1-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
+                  <div id="p1-result" style="display:none;margin-top:10px;">
+                    <img id="p1-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
+                    <span id="p1-score" class="score-badge"></span>
+                  </div>
+                </div>
+                <div class="player-slot" id="slot-p2">
+                  <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 2</p>
+                  <p id="p2-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
+                  <p id="p2-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
+                  <div id="p2-result" style="display:none;margin-top:10px;">
+                    <img id="p2-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
+                    <span id="p2-score" class="score-badge"></span>
+                  </div>
+                </div>
+                <div class="player-slot" id="slot-p3">
+                  <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 3</p>
+                  <p id="p3-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
+                  <p id="p3-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
+                  <div id="p3-result" style="display:none;margin-top:10px;">
+                    <img id="p3-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
+                    <span id="p3-score" class="score-badge"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Banner vencedor -->
+              <div id="vencedor-banner" style="display:none;padding:14px 20px;border-radius:10px;text-align:center;">
+                <p id="vencedor-txt" style="font-weight:700;font-size:16px;"></p>
+              </div>
+            </div>
+          </details>
+
+          <!-- ── Histórico colapsável ── -->
+          <details id="historico-details" style="display:none;margin-top:4px;">
+            <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;padding:12px 0 0;border-top:1px solid rgba(255,255,255,.07);">
+              <span class="hist-arrow" style="font-size:12px;color:rgba(255,255,255,.3);display:inline-block;transition:transform .2s;">▶</span>
+              <span id="historico-summary-label" style="font-size:12px;font-weight:700;color:rgba(255,255,255,.45);">Histórico de Rodadas</span>
+            </summary>
+            <div id="historico-lista" style="display:flex;flex-direction:column;gap:0;margin-top:4px;"></div>
+          </details>
         </div>
 
         <!-- ── Outros Desafios ── -->
         <div id="outros-desafios-wrap" style="margin-bottom:24px;display:none;">
-          <details>
-            <summary style="cursor:pointer;font-weight:700;color:rgba(255,255,255,.75);font-size:14px;padding:12px 0;list-style:none;display:flex;align-items:center;gap:8px;">
-              <span id="outros-summary-label">Outros Desafios</span>
-            </summary>
-            <div id="outros-lista" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;"></div>
-          </details>
-        </div>
-
-        <!-- ── Rodadas ── -->
-        <div id="sem-rodada" class="card" style="display:none;text-align:center;padding:32px 24px;margin-bottom:24px;">
-          <p style="color:var(--texto-sec);margin-bottom:16px;">Nenhuma rodada criada ainda.</p>
-          <button id="btn-nova-rodada-vazio" class="btn btn-primary">⚔️ Criar Rodada 1</button>
-        </div>
-
-        <div id="card-rodada" style="display:none;flex-direction:column;gap:20px;">
-
-          <!-- Cabeçalho da rodada -->
-          <div class="card">
-            <div class="flex-between" style="margin-bottom:16px;">
-              <div>
-                <h2 id="rodada-titulo" style="font-weight:700;color:#fff;font-size:18px;margin-bottom:4px;"></h2>
-                <p id="rodada-status" style="font-size:12px;font-weight:700;"></p>
-              </div>
-              <div class="flex-row" style="flex-wrap:wrap;">
-                <button id="btn-iniciar-rodada" class="btn btn-primary btn-sm" style="display:none;">▶ Iniciar Rodada</button>
-                <button id="btn-revelar" class="btn btn-secondary btn-sm" style="display:none;">🏁 Encerrar e Revelar</button>
-                <button id="btn-proxima" class="btn btn-secondary btn-sm">⏭ Próxima Rodada</button>
-              </div>
-            </div>
-
-            <!-- Timer ao vivo -->
-            <div id="admin-timer-wrap">
-              <div>
-                <div id="admin-timer-label">Tempo restante</div>
-                <div id="admin-timer-num">--:--</div>
-              </div>
-              <button id="btn-revelar-timer" class="btn btn-primary btn-sm" style="display:none;">🏁 Encerrar agora</button>
-            </div>
-
-            <!-- Alerta timer zerou -->
-            <div id="alerta-timer">
-              <span style="font-size:22px;">⏰</span>
-              <p>Tempo esgotado! Encerre a rodada quando estiver pronto.</p>
-              <button id="btn-revelar-alerta" class="btn btn-primary btn-sm">🏁 Encerrar</button>
-            </div>
-
-            <!-- Barra de progresso de envios -->
-            <div id="progresso-wrap">
-              <div class="prog-bar-outer"><div class="prog-bar-inner" id="prog-bar" style="width:0%"></div></div>
-              <span id="prog-label">0 / 2 enviaram</span>
-            </div>
-
-            <!-- Slots dos jogadores -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
-              <!-- Jogador 1 -->
-              <div class="player-slot" id="slot-p1">
-                <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 1</p>
-                <p id="p1-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
-                <p id="p1-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
-                <div id="p1-result" style="display:none;margin-top:10px;">
-                  <img id="p1-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
-                  <span id="p1-score" class="score-badge"></span>
-                </div>
-              </div>
-              <!-- Jogador 2 -->
-              <div class="player-slot" id="slot-p2">
-                <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 2</p>
-                <p id="p2-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
-                <p id="p2-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
-                <div id="p2-result" style="display:none;margin-top:10px;">
-                  <img id="p2-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
-                  <span id="p2-score" class="score-badge"></span>
-                </div>
-              </div>
-              <!-- Jogador 3 -->
-              <div class="player-slot" id="slot-p3">
-                <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 3</p>
-                <p id="p3-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
-                <p id="p3-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
-                <div id="p3-result" style="display:none;margin-top:10px;">
-                  <img id="p3-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
-                  <span id="p3-score" class="score-badge"></span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Banner vencedor -->
-            <div id="vencedor-banner" style="display:none;padding:14px 20px;border-radius:10px;text-align:center;">
-              <p id="vencedor-txt" style="font-weight:700;font-size:16px;"></p>
-            </div>
-          </div>
-
-          <!-- Histórico de rodadas -->
-          <div id="historico-card" class="card" style="display:none;">
-            <h3 style="font-weight:700;color:#fff;font-size:16px;margin-bottom:16px;">Histórico de Rodadas</h3>
-            <div id="historico-lista"></div>
-          </div>
-
+          <p id="outros-summary-label" style="font-weight:700;color:rgba(255,255,255,.75);font-size:14px;margin-bottom:10px;">Outros Desafios</p>
+          <div id="outros-lista" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
 
       </div>
@@ -393,18 +400,6 @@
       document.getElementById("prog-bar").style.width = `${n * 33.33}%`;
     }
 
-    // ── Status com dot pulsante ──────────────────────────────
-    function renderStatusRodada(status) {
-      const el = document.getElementById("rodada-status");
-      const colorMap = { waiting:"#FCD34D", active:"#34D399", done:"rgba(255,255,255,.4)" };
-      const labelMap = { waiting:"Aguardando jogadores", active:"Em andamento", done:"Encerrada" };
-      el.style.color = colorMap[status] || "";
-      if (status === "active") {
-        el.innerHTML = `<span class="dot-ativo"></span>${labelMap[status]}`;
-      } else {
-        el.textContent = `● ${labelMap[status] || ""}`;
-      }
-    }
 
     // ── Desafio ──────────────────────────────────────────────
     let DESAFIO = null;
@@ -418,8 +413,6 @@
       if (!DESAFIO?.title) {
         document.getElementById("sem-desafio").style.display = "block";
         document.getElementById("card-desafio").style.display = "none";
-        document.getElementById("sem-rodada").style.display = "none";
-        document.getElementById("card-rodada").style.display = "none";
         return;
       }
       document.getElementById("sem-desafio").style.display = "none";
@@ -435,18 +428,34 @@
     function renderRodada() {
       if (!DESAFIO?.title) return;
 
+      const rodadaDetails   = document.getElementById("rodada-details");
+      const semRodadaInner  = document.getElementById("sem-rodada-inner");
+      const rodadaInner     = document.getElementById("rodada-inner");
+      const summaryLabel    = document.getElementById("rodada-summary-label");
+      const statusMap   = { waiting:"Aguardando jogadores", active:"Em andamento", done:"Encerrada" };
+      const statusColor = { waiting:"#FCD34D", active:"#34D399", done:"rgba(255,255,255,.5)" };
+
       if (!RODADA) {
-        document.getElementById("sem-rodada").style.display = "block";
-        document.getElementById("card-rodada").style.display = "none";
+        rodadaDetails.open        = false;
+        semRodadaInner.style.display = "block";
+        rodadaInner.style.display    = "none";
+        summaryLabel.textContent     = "Nenhuma rodada";
+        renderOutros();
         return;
       }
-      document.getElementById("sem-rodada").style.display = "none";
-      document.getElementById("card-rodada").style.display = "flex";
 
-      document.getElementById("rodada-titulo").textContent = `Rodada ${RODADA.number}`;
-      renderStatusRodada(RODADA.status);
+      rodadaDetails.open        = true;
+      semRodadaInner.style.display = "none";
+      rodadaInner.style.display    = "block";
+      const dotHtml = RODADA.status === "active" ? `<span class="dot-ativo"></span>` : `<span style="color:${statusColor[RODADA.status]||"#fff"};">● </span>`;
+      summaryLabel.innerHTML = `Rodada ${RODADA.number} &nbsp;·&nbsp; ${dotHtml}${statusMap[RODADA.status] || RODADA.status}`;
+      summaryLabel.style.color = "rgba(255,255,255,.8)";
 
-      document.getElementById("btn-iniciar-rodada").style.display = RODADA.status === "waiting" ? "inline-flex" : "none";
+      const temJogador = !!(RODADA.player1?.name && RODADA.player2?.name && RODADA.player3?.name);
+      const btnIniciar = document.getElementById("btn-iniciar-rodada");
+      btnIniciar.style.display  = RODADA.status === "waiting" ? "inline-flex" : "none";
+      btnIniciar.disabled       = !temJogador;
+      btnIniciar.title          = temJogador ? "" : "Aguarde os 3 jogadores entrarem";
       document.getElementById("btn-revelar").style.display        = RODADA.status === "active"  ? "inline-flex" : "none";
       document.getElementById("btn-proxima").style.display        = RODADA.status === "done"    ? "inline-flex" : "none";
 
@@ -497,6 +506,8 @@
           txt.textContent = `🏆 Vencedor: ${w?.name || ""}`;
         }
       } else { banner.style.display = "none"; }
+
+      renderOutros();
     }
 
     onValue(ref(db, "activeChallenge"), snap => {
@@ -518,11 +529,12 @@
 
       unsubRounds = onValue(ref(db, `challenges/${ACTIVE_ID}/rounds`), snap => {
         const data = snap.val();
-        const hCard = document.getElementById("historico-card");
-        if (!data) { hCard.style.display = "none"; return; }
+        const hDetails = document.getElementById("historico-details");
+        if (!data) { hDetails.style.display = "none"; return; }
         const medals = ["🏆","🥈","🥉"];
         const rodadas = Object.values(data).sort((a,b) => (a.number||0)-(b.number||0));
-        hCard.style.display = "block";
+        hDetails.style.display = "block";
+        document.getElementById("historico-summary-label").textContent = `Histórico de Rodadas (${rodadas.length})`;
         document.getElementById("historico-lista").innerHTML = rodadas.map(r => {
           const slots = ["player1","player2","player3"];
           const ranking = r.rankings || slots;
@@ -539,8 +551,8 @@
               </div>`;
           }).filter(Boolean).join("");
           return `
-            <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08);">
-              <p style="font-weight:700;color:#fff;font-size:14px;margin-bottom:10px;">Rodada ${r.number}</p>
+            <div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08);">
+              <p style="font-weight:700;color:rgba(255,255,255,.6);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Rodada ${r.number}</p>
               <div style="display:flex;flex-direction:column;gap:6px;">${jogadores || '<span style="color:rgba(255,255,255,.3);font-size:13px;">Sem jogadores</span>'}</div>
             </div>`;
         }).join("");
@@ -560,6 +572,8 @@
 
     // ── Iniciar rodada ───────────────────────────────────────
     document.getElementById("btn-iniciar-rodada").addEventListener("click", async () => {
+      const temJogador = !!(RODADA?.player1?.name || RODADA?.player2?.name || RODADA?.player3?.name);
+      if (!temJogador) return;
       await update(ref(db, `challenges/${ACTIVE_ID}/currentRound`), { status: "active", startedAt: Date.now() });
     });
 
@@ -626,13 +640,15 @@
     });
 
     // ── Outros Desafios ──────────────────────────────────────
-    onValue(ref(db, "challenges"), snap => {
-      const todos = snap.val() || {};
-      const outros = Object.entries(todos).filter(([id]) => id !== ACTIVE_ID);
+    let TODOS_CHALLENGES = {};
+
+    function renderOutros() {
+      const outros = Object.entries(TODOS_CHALLENGES).filter(([id]) => id !== ACTIVE_ID);
       const wrap = document.getElementById("outros-desafios-wrap");
       if (!outros.length) { wrap.style.display = "none"; return; }
       wrap.style.display = "block";
       document.getElementById("outros-summary-label").textContent = `Outros Desafios (${outros.length})`;
+      const bloqueado = !!(RODADA && RODADA.status !== "done");
       document.getElementById("outros-lista").innerHTML = outros.map(([id, ch]) => {
         const ativo = ch.isActive;
         return `
@@ -640,10 +656,17 @@
             <div style="flex:1;min-width:160px;">
               <p style="font-weight:700;color:#fff;font-size:15px;margin-bottom:2px;">${ch.title || "(sem título)"}</p>
               <p style="font-size:12px;font-weight:700;color:${ativo ? "#34D399" : "#FCD34D"};">${ativo ? "● Ativo" : "○ Pausado"}</p>
+              ${bloqueado ? `<p style="font-size:11px;color:rgba(255,100,100,.8);margin-top:2px;">⚠ Encerre a rodada atual primeiro</p>` : ""}
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="ativarDesafio('${id}')">Ativar</button>
+            <button class="btn btn-secondary btn-sm" onclick="ativarDesafio('${id}')"
+              ${bloqueado ? `disabled style="opacity:.35;cursor:not-allowed;"` : ""}>Ativar</button>
           </div>`;
       }).join("");
+    }
+
+    onValue(ref(db, "challenges"), snap => {
+      TODOS_CHALLENGES = snap.val() || {};
+      renderOutros();
     });
 
     window.ativarDesafio = async function(id) {
