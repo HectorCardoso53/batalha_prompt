@@ -384,6 +384,7 @@
     let CHALLENGE = null;
     let ACTIVE_ID = null;
     let unsubChallenge = null;
+    let unsubCurrentRound = null;
     let CURRENT_ROUND = null;
 
     function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
@@ -567,11 +568,101 @@
     // ── Firebase ───────────────────────────────────────────────
     onValue(ref(db, "activeChallenge"), snap => {
       ACTIVE_ID = snap.val();
-      if (unsubChallenge) { unsubChallenge(); unsubChallenge = null; }
-      if (!ACTIVE_ID) { CHALLENGE = null; renderTV(); return; }
+      if (unsubChallenge)    { unsubChallenge();    unsubChallenge    = null; }
+      if (unsubCurrentRound) { unsubCurrentRound(); unsubCurrentRound = null; }
+      if (!ACTIVE_ID) { CHALLENGE = null; CURRENT_ROUND = null; renderTV(); return; }
       unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => {
         CHALLENGE = snap.val();
         renderTV();
+      });
+      unsubCurrentRound = onValue(ref(db, `challenges/${ACTIVE_ID}/currentRound`), snap => {
+        const round = snap.val();
+        CURRENT_ROUND = round;
+
+        if (!CHALLENGE?.isActive) return; // desafio pausado, TV já está no vídeo
+
+        if (!round) {
+          mostrarSomente("tela-sem-rodada");
+          ocultarPodio();
+          if (timerInterval) clearInterval(timerInterval);
+          return;
+        }
+
+        if (round.status === "done") {
+          mostrarPodio(round);
+          if (timerInterval) clearInterval(timerInterval);
+          return;
+        }
+
+        ocultarPodio();
+
+        if (round.status === "waiting") {
+          mostrarSomente("tela-aguardando-jogadores");
+          document.getElementById("ag-rodada-label").textContent = `Rodada ${round.number}`;
+          renderAgSlot(
+            document.getElementById("ag-slot-1"),
+            document.getElementById("ag-p1-nome"),
+            document.getElementById("ag-p1-status"),
+            round.player1
+          );
+          renderAgSlot(
+            document.getElementById("ag-slot-2"),
+            document.getElementById("ag-p2-nome"),
+            document.getElementById("ag-p2-status"),
+            round.player2
+          );
+          renderAgSlot(
+            document.getElementById("ag-slot-3"),
+            document.getElementById("ag-p3-nome"),
+            document.getElementById("ag-p3-status"),
+            round.player3
+          );
+          if (timerInterval) clearInterval(timerInterval);
+          return;
+        }
+
+        // status === "active"
+        mostrarSomente("tela-ativa");
+        document.getElementById("ativa-rodada-label").textContent  = `Rodada ${round.number}`;
+        document.getElementById("ativa-rodada-titulo").textContent = CHALLENGE?.title || "";
+
+        if (CHALLENGE?.masterImage) {
+          document.getElementById("master-img").src = CHALLENGE.masterImage;
+        }
+
+        renderAtivaPlayer("ativa-p1", round.player1);
+        renderAtivaPlayer("ativa-p2", round.player2);
+        renderAtivaPlayer("ativa-p3", round.player3);
+
+        if (round.startedAt && CHALLENGE?.timeLimit) {
+          if (timerInterval) clearInterval(timerInterval);
+          const end = round.startedAt + CHALLENGE.timeLimit * 1000;
+          function tick() {
+            const rem = Math.max(0, end - Date.now());
+            const m = Math.floor(rem / 60000);
+            const s = Math.floor((rem % 60000) / 1000);
+            const el = document.getElementById("timer-num");
+            el.textContent = `${m}:${s.toString().padStart(2,"0")}`;
+            el.className = rem < 30000 ? "vermelho" : rem < 60000 ? "amarelo" : "";
+            if (rem <= 0) {
+              clearInterval(timerInterval);
+              setTimeout(() => {
+                if (document.getElementById("tela-celebracao").classList.contains("ativa")) return;
+                if (!CURRENT_ROUND) return;
+                const slots = ["player1","player2","player3"];
+                const rankings = slots
+                  .filter(s => CURRENT_ROUND[s]?.name)
+                  .sort((a, b) => {
+                    const d = (CURRENT_ROUND[b]?.score ?? 0) - (CURRENT_ROUND[a]?.score ?? 0);
+                    return d !== 0 ? d : (CURRENT_ROUND[a]?.submittedAt ?? Infinity) - (CURRENT_ROUND[b]?.submittedAt ?? Infinity);
+                  });
+                mostrarPodio({ ...CURRENT_ROUND, winner: rankings[0] ?? null, rankings });
+              }, 4000);
+            }
+          }
+          tick();
+          timerInterval = setInterval(tick, 500);
+        }
       });
     });
 
@@ -599,96 +690,6 @@
         return;
       }
     }
-
-    onValue(ref(db, "currentRound"), snap => {
-      const round = snap.val();
-      CURRENT_ROUND = round;
-
-      if (!CHALLENGE?.isActive) return; // desafio pausado, TV já está no vídeo
-
-      if (!round) {
-        mostrarSomente("tela-sem-rodada");
-        ocultarPodio();
-        if (timerInterval) clearInterval(timerInterval);
-        return;
-      }
-
-      if (round.status === "done") {
-        mostrarPodio(round);
-        if (timerInterval) clearInterval(timerInterval);
-        return;
-      }
-
-      ocultarPodio();
-
-      if (round.status === "waiting") {
-        mostrarSomente("tela-aguardando-jogadores");
-        document.getElementById("ag-rodada-label").textContent = `Rodada ${round.number}`;
-        renderAgSlot(
-          document.getElementById("ag-slot-1"),
-          document.getElementById("ag-p1-nome"),
-          document.getElementById("ag-p1-status"),
-          round.player1
-        );
-        renderAgSlot(
-          document.getElementById("ag-slot-2"),
-          document.getElementById("ag-p2-nome"),
-          document.getElementById("ag-p2-status"),
-          round.player2
-        );
-        renderAgSlot(
-          document.getElementById("ag-slot-3"),
-          document.getElementById("ag-p3-nome"),
-          document.getElementById("ag-p3-status"),
-          round.player3
-        );
-        if (timerInterval) clearInterval(timerInterval);
-        return;
-      }
-
-      // status === "active"
-      mostrarSomente("tela-ativa");
-      document.getElementById("ativa-rodada-label").textContent  = `Rodada ${round.number}`;
-      document.getElementById("ativa-rodada-titulo").textContent = CHALLENGE?.title || "";
-
-      if (CHALLENGE?.masterImage) {
-        document.getElementById("master-img").src = CHALLENGE.masterImage;
-      }
-
-      renderAtivaPlayer("ativa-p1", round.player1);
-      renderAtivaPlayer("ativa-p2", round.player2);
-      renderAtivaPlayer("ativa-p3", round.player3);
-
-      if (round.startedAt && CHALLENGE?.timeLimit) {
-        if (timerInterval) clearInterval(timerInterval);
-        const end = round.startedAt + CHALLENGE.timeLimit * 1000;
-        function tick() {
-          const rem = Math.max(0, end - Date.now());
-          const m = Math.floor(rem / 60000);
-          const s = Math.floor((rem % 60000) / 1000);
-          const el = document.getElementById("timer-num");
-          el.textContent = `${m}:${s.toString().padStart(2,"0")}`;
-          el.className = rem < 30000 ? "vermelho" : rem < 60000 ? "amarelo" : "";
-          if (rem <= 0) {
-            clearInterval(timerInterval);
-            setTimeout(() => {
-              if (document.getElementById("tela-celebracao").classList.contains("ativa")) return;
-              if (!CURRENT_ROUND) return;
-              const slots = ["player1","player2","player3"];
-              const rankings = slots
-                .filter(s => CURRENT_ROUND[s]?.name)
-                .sort((a, b) => {
-                  const d = (CURRENT_ROUND[b]?.score ?? 0) - (CURRENT_ROUND[a]?.score ?? 0);
-                  return d !== 0 ? d : (CURRENT_ROUND[a]?.submittedAt ?? Infinity) - (CURRENT_ROUND[b]?.submittedAt ?? Infinity);
-                });
-              mostrarPodio({ ...CURRENT_ROUND, winner: rankings[0] ?? null, rankings });
-            }, 4000);
-          }
-        }
-        tick();
-        timerInterval = setInterval(tick, 500);
-      }
-    });
 
     window.abrirLightbox = function() {
       const src = document.getElementById("master-img").src;

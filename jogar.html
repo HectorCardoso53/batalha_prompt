@@ -208,6 +208,7 @@
     let timerInterval = null;
     let initialized = false;
     let unsubChallenge = null;
+    let unsubCurrentRound = null;
 
     const SLOT_LABELS = { player1:"Jogador 1", player2:"Jogador 2", player3:"Jogador 3" };
 
@@ -253,7 +254,8 @@
     // ── Listener challenge via activeChallenge ───────────────
     onValue(ref(db, "activeChallenge"), snap => {
       ACTIVE_ID = snap.val();
-      if (unsubChallenge) { unsubChallenge(); unsubChallenge = null; }
+      if (unsubChallenge)    { unsubChallenge();    unsubChallenge    = null; }
+      if (unsubCurrentRound) { unsubCurrentRound(); unsubCurrentRound = null; }
       const aviso = document.getElementById("aviso");
       const btn   = document.getElementById("btn-login");
       if (!ACTIVE_ID) {
@@ -274,11 +276,9 @@
           btn.disabled = false;
         }
       });
-    });
 
-    // ── Listener rodada atual ────────────────────────────────
-    onValue(ref(db, "currentRound"), snap => {
-      ROUND = snap.val();
+      unsubCurrentRound = onValue(ref(db, `challenges/${ACTIVE_ID}/currentRound`), snap => {
+        ROUND = snap.val();
 
       // Primeira execução: tenta restaurar sessão salva no localStorage
       if (!initialized) {
@@ -342,7 +342,8 @@
         atualizarOponentes();
         atualizarBanner();
       }
-    });
+      }); // fim unsubCurrentRound onValue
+    }); // fim activeChallenge onValue
 
     async function entrarNoJogo() {
       if (!ROUND) return;
@@ -381,7 +382,7 @@
       aviso.style.display = "none";
 
       try {
-        const roundSnap = await get(ref(db, "currentRound"));
+        const roundSnap = await get(ref(db, `challenges/${ACTIVE_ID}/currentRound`));
         const round = roundSnap.val();
 
         if (!round || round.status === "done") {
@@ -422,7 +423,7 @@
 
         mySlot = slotEscolhido; // define ANTES do await para que onValue não perca a referência
         salvarSessao();
-        await set(ref(db, `currentRound/${slotEscolhido}`), { name: nomeJogador, done: false });
+        await set(ref(db, `challenges/${ACTIVE_ID}/currentRound/${slotEscolhido}`), { name: nomeJogador, done: false });
 
         if (ROUND?.status === "active") { entrarNoJogo(); return; }
 
@@ -490,18 +491,18 @@
         const scoreFinal = Math.round(score);
 
         // 2. Salva no slot do Firebase
-        await update(ref(db, `currentRound/${mySlot}`), {
+        await update(ref(db, `challenges/${ACTIVE_ID}/currentRound/${mySlot}`), {
           prompt, generatedImage: null, score: scoreFinal, done: true, submittedAt: Date.now(),
         });
 
-        // 3. Salva em /submissions para o leaderboard
+        // 3. Salva em submissions do desafio para o leaderboard
         const { push } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js");
-        await push(ref(db, "submissions"), {
+        await push(ref(db, `challenges/${ACTIVE_ID}/submissions`), {
           name: nomeJogador, prompt, score: scoreFinal, ts: Date.now(),
         });
 
         // 5. Verifica se todos os 3 jogadores enviaram → calcula rankings
-        const roundSnap = await get(ref(db, "currentRound"));
+        const roundSnap = await get(ref(db, `challenges/${ACTIVE_ID}/currentRound`));
         const roundAtual = roundSnap.val();
         const todosEnviaram = roundAtual?.player1?.done && roundAtual?.player2?.done && roundAtual?.player3?.done;
         if (todosEnviaram) {
@@ -516,7 +517,7 @@
             return (pa?.submittedAt ?? Infinity) - (pb?.submittedAt ?? Infinity);
           });
           const winner = rankings[0];
-          await update(ref(db, "currentRound"), { winner, rankings, status: "done" });
+          await update(ref(db, `challenges/${ACTIVE_ID}/currentRound`), { winner, rankings, status: "done" });
         }
 
         // 6. Mostra resultado

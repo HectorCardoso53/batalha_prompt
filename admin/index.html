@@ -147,6 +147,16 @@
           </div>
         </div>
 
+        <!-- ── Outros Desafios ── -->
+        <div id="outros-desafios-wrap" style="margin-bottom:24px;display:none;">
+          <details>
+            <summary style="cursor:pointer;font-weight:700;color:rgba(255,255,255,.75);font-size:14px;padding:12px 0;list-style:none;display:flex;align-items:center;gap:8px;">
+              <span id="outros-summary-label">Outros Desafios</span>
+            </summary>
+            <div id="outros-lista" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;"></div>
+          </details>
+        </div>
+
         <!-- ── Rodadas ── -->
         <div id="sem-rodada" class="card" style="display:none;text-align:center;padding:32px 24px;margin-bottom:24px;">
           <p style="color:var(--texto-sec);margin-bottom:16px;">Nenhuma rodada criada ainda.</p>
@@ -399,8 +409,10 @@
     // ── Desafio ──────────────────────────────────────────────
     let DESAFIO = null;
     let ACTIVE_ID = null;
+    let RODADA = null;
     let unsubChallenge = null;
     let unsubRounds = null;
+    let unsubCurrentRound = null;
 
     function renderDesafio() {
       if (!DESAFIO?.title) {
@@ -489,13 +501,19 @@
 
     onValue(ref(db, "activeChallenge"), snap => {
       ACTIVE_ID = snap.val();
-      if (unsubChallenge) { unsubChallenge(); unsubChallenge = null; }
-      if (unsubRounds)    { unsubRounds();    unsubRounds    = null; }
+      if (unsubChallenge)    { unsubChallenge();    unsubChallenge    = null; }
+      if (unsubRounds)       { unsubRounds();       unsubRounds       = null; }
+      if (unsubCurrentRound) { unsubCurrentRound(); unsubCurrentRound = null; }
       if (!ACTIVE_ID) { DESAFIO = null; renderDesafio(); return; }
 
       unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => {
         DESAFIO = snap.val();
         renderDesafio();
+      });
+
+      unsubCurrentRound = onValue(ref(db, `challenges/${ACTIVE_ID}/currentRound`), snap => {
+        RODADA = snap.val();
+        renderRodada();
       });
 
       unsubRounds = onValue(ref(db, `challenges/${ACTIVE_ID}/rounds`), snap => {
@@ -538,20 +556,11 @@
       if (!await confirmar("Apagar este desafio e todas as rodadas? Esta ação é irreversível.")) return;
       if (ACTIVE_ID) await remove(ref(db, `challenges/${ACTIVE_ID}`));
       await set(ref(db, "activeChallenge"), null);
-      await remove(ref(db, "currentRound"));
-      await remove(ref(db, "submissions"));
-    });
-
-    // ── Rodada atual ─────────────────────────────────────────
-    let RODADA = null;
-    onValue(ref(db, "currentRound"), snap => {
-      RODADA = snap.val();
-      renderRodada();
     });
 
     // ── Iniciar rodada ───────────────────────────────────────
     document.getElementById("btn-iniciar-rodada").addEventListener("click", async () => {
-      await update(ref(db, "currentRound"), { status: "active", startedAt: Date.now() });
+      await update(ref(db, `challenges/${ACTIVE_ID}/currentRound`), { status: "active", startedAt: Date.now() });
     });
 
     // ── Lógica de encerramento compartilhada ─────────────────
@@ -572,12 +581,12 @@
     async function encerrarRodada() {
       if (RODADA?.rankings) {
         // rankings já calculados
-        await update(ref(db, "currentRound"), { status: "done" });
+        await update(ref(db, `challenges/${ACTIVE_ID}/currentRound`), { status: "done" });
         return;
       }
       const rankings = calcularRankings(RODADA);
       const winner = rankings[0];
-      await update(ref(db, "currentRound"), { status: "done", winner, rankings });
+      await update(ref(db, `challenges/${ACTIVE_ID}/currentRound`), { status: "done", winner, rankings });
     }
 
     document.getElementById("btn-revelar-timer").addEventListener("click", async () => {
@@ -602,7 +611,7 @@
         await set(ref(db, `challenges/${ACTIVE_ID}/rounds/${RODADA.number}`), RODADA);
       }
       const nextNum = (RODADA?.number || 0) + 1;
-      await set(ref(db, "currentRound"), {
+      await set(ref(db, `challenges/${ACTIVE_ID}/currentRound`), {
         number: nextNum, status: "waiting",
         startedAt: null, player1: null, player2: null, player3: null, winner: null, rankings: null,
       });
@@ -610,11 +619,36 @@
 
     // ── Criar primeira rodada ────────────────────────────────
     document.getElementById("btn-nova-rodada-vazio").addEventListener("click", async () => {
-      await set(ref(db, "currentRound"), {
+      await set(ref(db, `challenges/${ACTIVE_ID}/currentRound`), {
         number: 1, status: "waiting",
         startedAt: null, player1: null, player2: null, player3: null, winner: null, rankings: null,
       });
     });
+
+    // ── Outros Desafios ──────────────────────────────────────
+    onValue(ref(db, "challenges"), snap => {
+      const todos = snap.val() || {};
+      const outros = Object.entries(todos).filter(([id]) => id !== ACTIVE_ID);
+      const wrap = document.getElementById("outros-desafios-wrap");
+      if (!outros.length) { wrap.style.display = "none"; return; }
+      wrap.style.display = "block";
+      document.getElementById("outros-summary-label").textContent = `Outros Desafios (${outros.length})`;
+      document.getElementById("outros-lista").innerHTML = outros.map(([id, ch]) => {
+        const ativo = ch.isActive;
+        return `
+          <div class="card" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 18px;">
+            <div style="flex:1;min-width:160px;">
+              <p style="font-weight:700;color:#fff;font-size:15px;margin-bottom:2px;">${ch.title || "(sem título)"}</p>
+              <p style="font-size:12px;font-weight:700;color:${ativo ? "#34D399" : "#FCD34D"};">${ativo ? "● Ativo" : "○ Pausado"}</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="ativarDesafio('${id}')">Ativar</button>
+          </div>`;
+      }).join("");
+    });
+
+    window.ativarDesafio = async function(id) {
+      await set(ref(db, "activeChallenge"), id);
+    };
 
   </script>
 </body>

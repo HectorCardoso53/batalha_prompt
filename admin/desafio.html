@@ -114,34 +114,9 @@
     let DESAFIO = null;
     let ACTIVE_ID = null;
     let unsubChallenge = null;
+    let unsubSubmissions = null;
 
-    // ── Real-time: challenge via activeChallenge ─────────────
-    onValue(ref(db, "activeChallenge"), snap => {
-      ACTIVE_ID = snap.val();
-      if (unsubChallenge) { unsubChallenge(); unsubChallenge = null; }
-      if (!ACTIVE_ID) {
-        DESAFIO = null;
-        document.getElementById("sem-desafio").style.display = "block";
-        document.getElementById("ch-title").textContent = "";
-        return;
-      }
-      unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => {
-        DESAFIO = snap.val();
-        if (!DESAFIO || !DESAFIO.title) {
-          document.getElementById("sem-desafio").style.display = "block";
-          document.getElementById("ch-title").textContent = "";
-          return;
-        }
-        document.getElementById("sem-desafio").style.display = "none";
-        document.title = DESAFIO.title + " — Admin";
-        document.getElementById("ch-title").textContent  = DESAFIO.title;
-        document.getElementById("ch-img").src            = DESAFIO.masterImage;
-        document.getElementById("ch-prompt").textContent = DESAFIO.masterPrompt;
-      });
-    });
-
-    // ── Real-time: submissions ───────────────────────────────
-    onValue(ref(db, "submissions"), snap => {
+    function renderSubmissions(snap) {
       const raw  = snap.val() || {};
       const subs = Object.values(raw).sort((a,b) => (b.score??0) - (a.score??0));
       const wrap = document.getElementById("subs-wrap");
@@ -162,6 +137,36 @@
           </div>
         </div>
       `).join("");
+    }
+
+    // ── Real-time: challenge via activeChallenge ─────────────
+    onValue(ref(db, "activeChallenge"), snap => {
+      ACTIVE_ID = snap.val();
+      if (unsubChallenge)    { unsubChallenge();    unsubChallenge    = null; }
+      if (unsubSubmissions)  { unsubSubmissions();  unsubSubmissions  = null; }
+      if (!ACTIVE_ID) {
+        DESAFIO = null;
+        document.getElementById("sem-desafio").style.display = "block";
+        document.getElementById("ch-title").textContent = "";
+        document.getElementById("subs-wrap").style.display = "none";
+        return;
+      }
+      unsubChallenge = onValue(ref(db, `challenges/${ACTIVE_ID}`), snap => {
+        DESAFIO = snap.val();
+        if (!DESAFIO || !DESAFIO.title) {
+          document.getElementById("sem-desafio").style.display = "block";
+          document.getElementById("ch-title").textContent = "";
+          return;
+        }
+        document.getElementById("sem-desafio").style.display = "none";
+        document.title = DESAFIO.title + " — Admin";
+        document.getElementById("ch-title").textContent  = DESAFIO.title;
+        document.getElementById("ch-img").src            = DESAFIO.masterImage;
+        document.getElementById("ch-prompt").textContent = DESAFIO.masterPrompt;
+      });
+
+      // ── Real-time: submissions por desafio ───────────────
+      unsubSubmissions = onValue(ref(db, `challenges/${ACTIVE_ID}/submissions`), renderSubmissions);
     });
 
     // ── Editar ───────────────────────────────────────────────

@@ -74,7 +74,7 @@
   <script src="../js/header.js"></script>
   <script type="module">
     import { db } from "../js/app.js";
-    import { ref, push, set, remove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+    import { ref, push, set } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
     let masterImageData = null;
 
@@ -151,12 +151,11 @@
           timeLimit, isActive: false, createdAt: Date.now(),
         });
         await set(ref(db, "activeChallenge"), challengeRef.key);
-        await set(ref(db, "currentRound"), {
+        await set(ref(db, `challenges/${challengeRef.key}/currentRound`), {
           number: 1, status: "waiting",
           startedAt: null, player1: null, player2: null, player3: null,
           winner: null, rankings: null,
         });
-        await remove(ref(db, "submissions"));
         location.href = "index.html";
       } catch (err) {
         erro.textContent = "Erro ao salvar: " + (err.message || err);
