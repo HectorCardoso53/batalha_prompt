@@ -225,8 +225,8 @@
       document.getElementById(id).classList.add("ativo");
     }
 
-    function scoreColor(s) { return s>=70?"#065F46":s>=40?"#92400E":"#991B1B"; }
-    function scoreBg(s)    { return s>=70?"#D1FAE5":s>=40?"#FEF3C7":"#FEE2E2"; }
+    function scoreColor(s) { return "#fff"; }
+    function scoreBg(s)    { return "linear-gradient(135deg,rgba(255,45,120,.35),rgba(0,180,255,.35))"; }
 
     // ── Timer ────────────────────────────────────────────────
     function iniciarTimer(startedAt, timeLimit) {
@@ -567,10 +567,10 @@
         const bgColor  = scoreBg(s);
         const txtColor = scoreColor(s);
         let html = `
-          <div style="border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+          <div style="background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
             <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
               <p style="font-weight:700;font-size:15px;color:#fff;flex:1;">${op.name || "—"}</p>
-              <span class="score-badge" style="font-size:16px;font-weight:900;color:${txtColor};background:${bgColor};">${Math.round(s)}/100</span>
+              <span class="score-badge" style="font-size:15px;font-weight:900;color:${txtColor};background:${bgColor};padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.25);">${Math.round(s)}/100</span>
             </div>`;
         if (op.generatedImage) {
           html += `<img src="${op.generatedImage}" alt="Imagem do adversário" class="img-azul" style="margin-bottom:10px;" />`;
