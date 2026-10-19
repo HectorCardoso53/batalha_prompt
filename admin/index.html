@@ -364,7 +364,7 @@
 
       const end = startedAt + timeLimit * 1000;
       function tick() {
-        const rem = Math.max(0, end - Date.now());
+        const rem = Math.max(0, end - (Date.now() + serverTimeOffset));
         const m = Math.floor(rem / 60000);
         const s = Math.floor((rem % 60000) / 1000);
         const el = document.getElementById("admin-timer-num");
@@ -407,6 +407,8 @@
     let ACTIVE_ID = null;
     let RODADA = null;
     let unsubChallenge = null;
+    let serverTimeOffset = 0;
+    onValue(ref(db, ".info/serverTimeOffset"), snap => { serverTimeOffset = snap.val() || 0; }, { onlyOnce: true });
     let unsubRounds = null;
     let unsubCurrentRound = null;
 
