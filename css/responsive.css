@@ -1,0 +1,88 @@
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — Batalha de Prompt
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤ 1024px) ─────────────────────────────────── */
+@media (max-width: 1024px) {
+  .page { padding: 24px 16px; }
+
+  /* Admin: slots 3 → 2 colunas */
+  .slots-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Resultado: topo 3 → 2 colunas (score + imagem / adversários abaixo) */
+  .result-top-grid { grid-template-columns: 1fr 1fr !important; }
+  .result-top-grid > :first-child { grid-column: 1 / -1; }
+
+  /* Admin header botões wrap */
+  #card-desafio .flex-row { gap: 8px; }
+}
+
+/* ── Mobile (≤ 768px) ──────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Gerais */
+  .page { padding: 16px 12px; }
+  .page-inner, .page-inner-md { padding: 0; }
+  .secao-titulo { font-size: clamp(20px, 6vw, 28px) !important; }
+  .card { padding: 16px !important; }
+  .btn { padding: 12px 20px; font-size: 14px; }
+  .flex-between { gap: 10px; }
+
+  /* Admin: slots 3 → 1 coluna */
+  .slots-grid { grid-template-columns: 1fr !important; }
+
+  /* Admin: botões do desafio empilham */
+  #card-desafio > div:first-child { flex-direction: column; align-items: flex-start; }
+  #card-desafio > div:first-child .flex-row { width: 100%; }
+  #card-desafio > div:first-child .btn,
+  #card-desafio > div:first-child a.btn { width: 100%; text-align: center; justify-content: center; }
+
+  /* Resultado: topo 1 coluna */
+  .result-top-grid { grid-template-columns: 1fr !important; }
+  .result-top-grid > :first-child { grid-column: auto; }
+
+  /* Resultado: prompts 1 coluna */
+  .result-bottom-grid { grid-template-columns: 1fr !important; }
+
+  /* Jogar: timer menor */
+  #timer-num { font-size: clamp(28px, 9vw, 40px) !important; }
+  #timer-box { padding: 10px 16px !important; }
+
+  /* Jogar: game-title menor */
+  #game-title { font-size: clamp(16px, 5vw, 22px) !important; }
+
+  /* TV: aguardando — slots em coluna */
+  .ag-slots { flex-direction: column !important; gap: 16px !important; align-items: stretch !important; }
+  .ag-slot { min-width: unset !important; width: 100% !important; }
+
+  /* TV: tela ativa — painel lateral abaixo */
+  .ativa-logo-bar { right: 0 !important; left: 0 !important; }
+  .ativa-right-panel { width: 100% !important; position: static !important; height: auto !important; }
+
+  /* Pódio */
+  .podio-1 .podio-base { width: clamp(80px, 20vw, 140px) !important; height: clamp(50px, 10vw, 80px) !important; }
+  .podio-2 .podio-base, .podio-3 .podio-base { width: clamp(60px, 16vw, 120px) !important; }
+
+  /* Outros desafios */
+  #outros-lista .card { flex-direction: column; align-items: flex-start !important; }
+}
+
+/* ── Mobile pequeno (≤ 480px) ─────────────────────────── */
+@media (max-width: 480px) {
+  /* Botões full-width nas telas de admin */
+  .btn-sm { width: 100%; justify-content: center; }
+
+  /* Login jogar: logo menor */
+  #step-login img, #step-espera img { height: clamp(100px, 30vw, 160px) !important; }
+
+  /* Resultado: score menor */
+  #score-num { font-size: clamp(48px, 18vw, 72px) !important; }
+
+  /* Admin: título do painel */
+  h1.secao-titulo { font-size: clamp(18px, 7vw, 26px) !important; }
+
+  /* Novo desafio: campo tempo menor */
+  #inp-time { max-width: 100% !important; }
+
+  /* rodada-details summary wrap */
+  #rodada-summary-label { font-size: 12px !important; }
+}
