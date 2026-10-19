@@ -308,8 +308,26 @@
         }
       }
 
-      // Rodada encerrada: limpa sessão persistida
-      if (ROUND?.status === "done") limparSessao();
+      // Rodada encerrada: redireciona jogadores que ainda estavam jogando para o resultado
+      if (ROUND?.status === "done") {
+        const emJogo = document.getElementById("step-game").classList.contains("ativo");
+        const emEspera = document.getElementById("step-espera").classList.contains("ativo");
+        if (emJogo || emEspera) {
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          // Preenche dados do resultado com o que tiver
+          if (CHALLENGE?.masterImage) document.getElementById("res-master").src = CHALLENGE.masterImage;
+          if (CHALLENGE?.masterPrompt) document.getElementById("res-master-prompt").textContent = CHALLENGE.masterPrompt;
+          if (mySlot && ROUND[mySlot]) {
+            const me = ROUND[mySlot];
+            document.getElementById("score-num").textContent = me.score != null ? Math.round(me.score) : "—";
+            if (me.prompt) document.getElementById("res-prompt").textContent = me.prompt;
+          }
+          showStep("step-result");
+          atualizarOponentes();
+          atualizarBanner();
+        }
+        limparSessao();
+      }
 
       // Nova rodada disponível: reativa o login se estava bloqueado por "done"
       if (document.getElementById("step-login").classList.contains("ativo") && ROUND?.status === "waiting") {
