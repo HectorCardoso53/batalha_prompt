@@ -276,7 +276,7 @@
   <script src="../js/header.js"></script>
   <script type="module">
     import { db } from "../js/app.js";
-    import { ref, onValue, set, remove, update, get } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+    import { ref, onValue, set, remove, update, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
     // ── Modal de confirmação ─────────────────────────────────
     function confirmar(msg) {
@@ -575,7 +575,7 @@
     document.getElementById("btn-iniciar-rodada").addEventListener("click", async () => {
       const temJogador = !!(RODADA?.player1?.name || RODADA?.player2?.name || RODADA?.player3?.name);
       if (!temJogador) return;
-      await update(ref(db, `challenges/${ACTIVE_ID}/currentRound`), { status: "active", startedAt: Date.now() });
+      await update(ref(db, `challenges/${ACTIVE_ID}/currentRound`), { status: "active", startedAt: serverTimestamp() });
     });
 
     // ── Lógica de encerramento compartilhada ─────────────────
