@@ -204,7 +204,7 @@
               </div>
 
               <!-- Slots dos jogadores -->
-              <div class="slots-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+              <div class="slots-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
                 <div class="player-slot" id="slot-p1">
                   <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 1</p>
                   <p id="p1-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
@@ -221,15 +221,6 @@
                   <div id="p2-result" style="display:none;margin-top:10px;">
                     <img id="p2-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
                     <span id="p2-score" class="score-badge"></span>
-                  </div>
-                </div>
-                <div class="player-slot" id="slot-p3">
-                  <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Jogador 3</p>
-                  <p id="p3-nome" style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">—</p>
-                  <p id="p3-status" style="font-size:12px;color:rgba(255,255,255,.5);"></p>
-                  <div id="p3-result" style="display:none;margin-top:10px;">
-                    <img id="p3-img" src="" style="width:100%;border-radius:6px;margin-bottom:6px;object-fit:contain;max-height:160px;" />
-                    <span id="p3-score" class="score-badge"></span>
                   </div>
                 </div>
               </div>
@@ -378,7 +369,7 @@
           timerZerouJaAvisado = true;
           clearInterval(timerInterval);
           document.getElementById("admin-timer-wrap").classList.remove("visivel");
-          document.getElementById("alerta-timer").classList.add("visivel");
+          encerrarRodada();
         }
       }
       tick();
@@ -396,9 +387,9 @@
       const wrap = document.getElementById("progresso-wrap");
       if (!rodada || rodada.status !== "active") { wrap.classList.remove("visivel"); return; }
       wrap.classList.add("visivel");
-      const n = (rodada.player1?.done ? 1 : 0) + (rodada.player2?.done ? 1 : 0) + (rodada.player3?.done ? 1 : 0);
-      document.getElementById("prog-label").textContent = `${n} / 3 enviaram`;
-      document.getElementById("prog-bar").style.width = `${n * 33.33}%`;
+      const n = (rodada.player1?.done ? 1 : 0) + (rodada.player2?.done ? 1 : 0);
+      document.getElementById("prog-label").textContent = `${n} / 2 enviaram`;
+      document.getElementById("prog-bar").style.width = `${n * 50}%`;
     }
 
 
@@ -454,7 +445,7 @@
       summaryLabel.innerHTML = `Rodada ${RODADA.number} &nbsp;·&nbsp; ${dotHtml}${statusMap[RODADA.status] || RODADA.status}`;
       summaryLabel.style.color = "rgba(255,255,255,.8)";
 
-      const temJogador = !!(RODADA.player1?.name && RODADA.player2?.name && RODADA.player3?.name);
+      const temJogador = !!(RODADA.player1?.name && RODADA.player2?.name);
       const btnIniciar = document.getElementById("btn-iniciar-rodada");
       btnIniciar.style.display  = RODADA.status === "waiting" ? "inline-flex" : "none";
       btnIniciar.disabled       = !temJogador;
@@ -480,11 +471,6 @@
         document.getElementById("p2-result"), document.getElementById("p2-img"), document.getElementById("p2-score"),
         RODADA.player2, document.getElementById("slot-p2"), "player2"
       );
-      renderSlotAdmin(
-        document.getElementById("p3-nome"), document.getElementById("p3-status"),
-        document.getElementById("p3-result"), document.getElementById("p3-img"), document.getElementById("p3-score"),
-        RODADA.player3, document.getElementById("slot-p3"), "player3"
-      );
 
       const banner = document.getElementById("vencedor-banner");
       const txt    = document.getElementById("vencedor-txt");
@@ -493,10 +479,8 @@
         banner.style.background = "rgba(0,60,180,.35)"; txt.style.color = "#fff";
         const nome1 = RODADA[RODADA.rankings[0]]?.name || "—";
         const nome2 = RODADA.rankings[1] ? (RODADA[RODADA.rankings[1]]?.name || "—") : null;
-        const nome3 = RODADA.rankings[2] ? (RODADA[RODADA.rankings[2]]?.name || "—") : null;
-        let rankTxt = `🏆 1º: ${nome1}`;
+        let rankTxt = `🏆 Vencedor: ${nome1}`;
         if (nome2) rankTxt += ` | 🥈 2º: ${nome2}`;
-        if (nome3) rankTxt += ` | 🥉 3º: ${nome3}`;
         txt.textContent = rankTxt;
       } else if (RODADA.winner) {
         banner.style.display = "block";
@@ -539,7 +523,7 @@
         hDetails.style.display = "block";
         document.getElementById("historico-summary-label").textContent = `Histórico de Rodadas (${rodadas.length})`;
         document.getElementById("historico-lista").innerHTML = rodadas.map(r => {
-          const slots = ["player1","player2","player3"];
+          const slots = ["player1","player2"];
           const ranking = r.rankings || slots;
           const jogadores = ranking.map((slot, i) => {
             const p = r[slot];
@@ -582,8 +566,7 @@
 
     // ── Lógica de encerramento compartilhada ─────────────────
     function calcularRankings(rodada) {
-      const slots = ["player1", "player2", "player3"];
-      // Ordena: quem jogou (done) vem antes, ordenado por score desc; quem não jogou vem depois
+      const slots = ["player1", "player2"];
       const ordenados = slots.slice().sort((a, b) => {
         const pa = rodada[a], pb = rodada[b];
         const doneA = pa?.done ? 1 : 0, doneB = pb?.done ? 1 : 0;
@@ -630,7 +613,7 @@
       const nextNum = (RODADA?.number || 0) + 1;
       await set(ref(db, `challenges/${ACTIVE_ID}/currentRound`), {
         number: nextNum, status: "waiting",
-        startedAt: null, player1: null, player2: null, player3: null, winner: null, rankings: null,
+        startedAt: null, player1: null, player2: null, winner: null, rankings: null,
       });
     });
 
@@ -638,7 +621,7 @@
     document.getElementById("btn-nova-rodada-vazio").addEventListener("click", async () => {
       await set(ref(db, `challenges/${ACTIVE_ID}/currentRound`), {
         number: 1, status: "waiting",
-        startedAt: null, player1: null, player2: null, player3: null, winner: null, rankings: null,
+        startedAt: null, player1: null, player2: null, winner: null, rankings: null,
       });
     });
 
@@ -651,7 +634,7 @@
       if (!outros.length) { wrap.style.display = "none"; return; }
       wrap.style.display = "block";
       document.getElementById("outros-summary-label").textContent = `Outros Desafios (${outros.length})`;
-      const bloqueado = !!(RODADA && RODADA.status !== "done");
+      const bloqueado = !!(DESAFIO && DESAFIO.isActive);
       document.getElementById("outros-lista").innerHTML = outros.map(([id, ch]) => {
         const ativo = ch.isActive;
         return `
@@ -659,7 +642,7 @@
             <div style="flex:1;min-width:160px;">
               <p style="font-weight:700;color:#fff;font-size:15px;margin-bottom:2px;">${ch.title || "(sem título)"}</p>
               <p style="font-size:12px;font-weight:700;color:${ativo ? "#34D399" : "#FCD34D"};">${ativo ? "● Ativo" : "○ Pausado"}</p>
-              ${bloqueado ? `<p style="font-size:11px;color:rgba(255,100,100,.8);margin-top:2px;">⚠ Encerre a rodada atual primeiro</p>` : ""}
+              ${bloqueado ? `<p style="font-size:11px;color:rgba(255,180,0,.8);margin-top:2px;">Pause o desafio atual primeiro</p>` : ""}
             </div>
             <button class="btn btn-secondary btn-sm" onclick="ativarDesafio('${id}')"
               ${bloqueado ? `disabled style="opacity:.35;cursor:not-allowed;"` : ""}>Ativar</button>
@@ -673,7 +656,9 @@
     });
 
     window.ativarDesafio = async function(id) {
+      if (ACTIVE_ID) await update(ref(db, `challenges/${ACTIVE_ID}`), { isActive: false });
       await set(ref(db, "activeChallenge"), id);
+      await update(ref(db, `challenges/${id}`), { isActive: true });
     };
 
   </script>

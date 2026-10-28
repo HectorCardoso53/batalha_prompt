@@ -224,7 +224,7 @@
     // Lê o offset uma vez ao carregar
     onValue(ref(db, ".info/serverTimeOffset"), snap => { serverTimeOffset = snap.val() || 0; }, { onlyOnce: true });
 
-    const SLOT_LABELS = { player1:"Jogador 1", player2:"Jogador 2", player3:"Jogador 3" };
+    const SLOT_LABELS = { player1:"Jogador 1", player2:"Jogador 2" };
 
     function salvarSessao() {
       localStorage.setItem("batalha_slot", mySlot);
@@ -261,10 +261,29 @@
           document.getElementById("inp-prompt").disabled = true;
           document.getElementById("btn-prompt").disabled = true;
           document.getElementById("btn-prompt").textContent = "Tempo esgotado";
+          autoEncerrarRodada();
         }
       }
       tick();
       timerInterval = setInterval(tick, 500);
+    }
+
+    // ── Auto-encerrar rodada quando timer zera ───────────────
+    async function autoEncerrarRodada() {
+      if (!ACTIVE_ID) return;
+      const snap = await get(ref(db, `challenges/${ACTIVE_ID}/currentRound`));
+      const round = snap.val();
+      if (!round || round.status === "done") return;
+      const slots = ["player1", "player2"];
+      const rankings = slots.slice().sort((a, b) => {
+        const pa = round[a], pb = round[b];
+        const doneA = pa?.done ? 1 : 0, doneB = pb?.done ? 1 : 0;
+        if (doneA !== doneB) return doneB - doneA;
+        const scoreDiff = (pb?.score ?? 0) - (pa?.score ?? 0);
+        if (scoreDiff !== 0) return scoreDiff;
+        return (pa?.submittedAt ?? Infinity) - (pb?.submittedAt ?? Infinity);
+      });
+      await update(ref(db, `challenges/${ACTIVE_ID}/currentRound`), { status: "done", winner: rankings[0], rankings });
     }
 
     // ── Listener challenge via activeChallenge ───────────────
@@ -397,9 +416,9 @@
       // Overlay com nomes dos competidores por 3 s
       const overlay = document.getElementById("overlay-inicio");
       document.getElementById("overlay-jogadores").innerHTML =
-        ["player1","player2","player3"]
+        ["player1","player2"]
           .filter(s => ROUND[s]?.name)
-          .map((s,i) => `<div style="font-size:16px;font-weight:700;color:#fff;padding:14px 28px;border-radius:12px;background:${i===0?'rgba(255,45,120,.18)':i===1?'rgba(0,180,255,.18)':'rgba(124,58,237,.18)'};border:1.5px solid ${i===0?'rgba(255,45,120,.5)':i===1?'rgba(0,180,255,.5)':'rgba(124,58,237,.5)'};width:100%;text-align:center;"><span style="opacity:.65;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px;">${SLOT_LABELS[s]}</span>${ROUND[s].name}</div>`)
+          .map((s,i) => `<div style="font-size:16px;font-weight:700;color:#fff;padding:14px 28px;border-radius:12px;background:${i===0?'rgba(255,45,120,.18)':'rgba(0,180,255,.18)'};border:1.5px solid ${i===0?'rgba(255,45,120,.5)':'rgba(0,180,255,.5)'};width:100%;text-align:center;"><span style="opacity:.65;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px;">${SLOT_LABELS[s]}</span>${ROUND[s].name}</div>`)
           .join("");
       overlay.style.display = "flex";
       setTimeout(() => { overlay.style.display = "none"; }, 3000);
@@ -429,7 +448,7 @@
           return;
         }
 
-        const slots = ["player1", "player2", "player3"];
+        const slots = ["player1", "player2"];
 
         // Reconexão: mesmo nome já está num slot
         const slotReconexao = slots.find(s => round[s]?.name === nomeJogador);
@@ -448,9 +467,8 @@
         let slotEscolhido = null;
         if (!round.player1)      slotEscolhido = "player1";
         else if (!round.player2) slotEscolhido = "player2";
-        else if (!round.player3) slotEscolhido = "player3";
         else {
-          aviso.textContent = "Os três slots desta rodada já estão ocupados. Aguarde a próxima.";
+          aviso.textContent = "Os dois slots desta rodada já estão ocupados. Aguarde a próxima.";
           aviso.style.display = "block";
           btn.disabled = false; btn.textContent = "Entrar no desafio";
           return;
@@ -536,12 +554,12 @@
           name: nomeJogador, prompt, score: scoreFinal, ts: Date.now(),
         });
 
-        // 5. Verifica se todos os 3 jogadores enviaram → calcula rankings
+        // 5. Verifica se os 2 jogadores enviaram → calcula rankings
         const roundSnap = await get(ref(db, `challenges/${ACTIVE_ID}/currentRound`));
         const roundAtual = roundSnap.val();
-        const todosEnviaram = roundAtual?.player1?.done && roundAtual?.player2?.done && roundAtual?.player3?.done;
+        const todosEnviaram = roundAtual?.player1?.done && roundAtual?.player2?.done;
         if (todosEnviaram) {
-          const slots = ["player1", "player2", "player3"];
+          const slots = ["player1", "player2"];
           const rankings = slots.slice().sort((a, b) => {
             const pa = roundAtual[a], pb = roundAtual[b];
             const doneA = pa?.done ? 1 : 0, doneB = pb?.done ? 1 : 0;
@@ -591,7 +609,7 @@
     function atualizarOponentes() {
       if (!ROUND || !mySlot) return;
       const lista = document.getElementById("oponentes-lista");
-      const opSlots = ["player1", "player2", "player3"].filter(s => s !== mySlot);
+      const opSlots = ["player1", "player2"].filter(s => s !== mySlot);
 
       lista.innerHTML = opSlots.map(opSlot => {
         const op = ROUND[opSlot];
@@ -633,9 +651,8 @@
       banner.style.backdropFilter = "blur(12px)";
       txt.style.color = "#fff";
       const pos = ROUND.rankings.indexOf(mySlot) + 1;
-      if (pos === 1)      txt.textContent = "🏆 Você ficou em 1º lugar!";
-      else if (pos === 2) txt.textContent = "🥈 Você ficou em 2º lugar!";
-      else if (pos === 3) txt.textContent = "🥉 Você ficou em 3º lugar!";
+      if (pos === 1) txt.textContent = "🏆 Você venceu!";
+      else           txt.textContent = "🥈 Você ficou em 2º lugar!";
     }
   </script>
 </body>
