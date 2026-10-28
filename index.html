@@ -263,13 +263,6 @@
           <p class="ag-slot-nome" id="ag-p2-nome">—</p>
           <p class="ag-slot-status" id="ag-p2-status">Aguardando cadastro</p>
         </div>
-        <div class="ag-vs">VS</div>
-        <div class="ag-slot" id="ag-slot-3">
-          <p class="ag-slot-numero">Jogador 3</p>
-          <span class="ag-slot-avatar"><i class="bi bi-person-circle"></i></span>
-          <p class="ag-slot-nome" id="ag-p3-nome">—</p>
-          <p class="ag-slot-status" id="ag-p3-status">Aguardando cadastro</p>
-        </div>
       </div>
     </div>
 
@@ -314,14 +307,6 @@
                 <p class="ativa-player-status">—</p>
               </div>
             </div>
-            <div class="ativa-vs">— VS —</div>
-            <div id="ativa-p3" class="ativa-player vazio">
-              <div class="ativa-player-avatar"><i class="bi bi-person-circle"></i></div>
-              <div class="ativa-player-info">
-                <p class="ativa-player-nome">Aguardando...</p>
-                <p class="ativa-player-status">—</p>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -353,14 +338,6 @@
         <div class="podio-base">
           <span>1º</span>
           <span class="podio-base-score" id="podio-1-score"></span>
-        </div>
-      </div>
-      <div class="podio-lugar podio-3">
-        <div class="podio-avatar"><i class="bi bi-award-fill" style="color:#A0522D;"></i></div>
-        <p class="podio-nome" id="podio-3-nome"></p>
-        <div class="podio-base">
-          <span>3º</span>
-          <span class="podio-base-score" id="podio-3-score"></span>
         </div>
       </div>
     </div>
@@ -425,18 +402,14 @@
 
       const p1Key = rankings[0];
       const p2Key = rankings[1];
-      const p3Key = rankings[2];
 
       const p1 = p1Key ? round[p1Key] : null;
       const p2 = p2Key ? round[p2Key] : null;
-      const p3 = p3Key ? round[p3Key] : null;
 
       document.getElementById("podio-1-nome").textContent  = p1?.name  || "—";
       document.getElementById("podio-1-score").textContent = p1?.score  != null ? `${Math.round(p1.score)} pts` : "— pts";
       document.getElementById("podio-2-nome").textContent  = p2?.name  || "—";
       document.getElementById("podio-2-score").textContent = p2?.score  != null ? `${Math.round(p2.score)} pts`  : "— pts";
-      document.getElementById("podio-3-nome").textContent  = p3?.name  || "—";
-      document.getElementById("podio-3-score").textContent = p3?.score  != null ? `${Math.round(p3.score)} pts`  : "— pts";
 
       podioWrap.style.display = "flex";
       lancarConfete();
@@ -612,12 +585,6 @@
             document.getElementById("ag-p2-status"),
             round.player2
           );
-          renderAgSlot(
-            document.getElementById("ag-slot-3"),
-            document.getElementById("ag-p3-nome"),
-            document.getElementById("ag-p3-status"),
-            round.player3
-          );
           if (timerInterval) clearInterval(timerInterval);
           return;
         }
@@ -633,7 +600,6 @@
 
         renderAtivaPlayer("ativa-p1", round.player1);
         renderAtivaPlayer("ativa-p2", round.player2);
-        renderAtivaPlayer("ativa-p3", round.player3);
 
         if (round.startedAt && CHALLENGE?.timeLimit) {
           if (timerInterval) clearInterval(timerInterval);
@@ -650,7 +616,7 @@
               setTimeout(() => {
                 if (document.getElementById("tela-celebracao").classList.contains("ativa")) return;
                 if (!CURRENT_ROUND) return;
-                const slots = ["player1","player2","player3"];
+                const slots = ["player1","player2"];
                 const rankings = slots
                   .filter(s => CURRENT_ROUND[s]?.name)
                   .sort((a, b) => {
